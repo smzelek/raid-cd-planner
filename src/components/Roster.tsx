@@ -42,7 +42,7 @@ export default function Roster(props: {
         })).flat(1);
 
         setRaidCDTimeline(raidTimeline);
-    }, [roster, raidTimelineEditors, raidCDCooldownOverrides, raidCDDurationOverrides])
+    }, [roster, raidTimelineEditors, raidCDCooldownOverrides, raidCDDurationOverrides, setRaidCDTimeline])
 
     const validTimesRegex = new RegExp(/^(([\d]+:[\d]{2})(\s|$))+$/);
     const validCds = (cd: Cooldown<Class>, times: string[], cooldownOverride: number) => {

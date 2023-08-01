@@ -94,7 +94,7 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                     }}>
                     <a data-wh-icon-size="tiny"
                         href={`https://www.wowhead.com/spell=${playerAbility.spellId}`}>
-                        {playerAbility.name}'s {playerAbility.ability}
+                        {playerAbility.name}&apos;s {playerAbility.ability}
                     </a>
                 </div>)
             });

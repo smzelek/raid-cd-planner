@@ -42,7 +42,7 @@ export default function Planner() {
         const _sortedEvents = _rawEvents.sort((a, b) => a.time - b.time);
         const _offsetEvents = offsetEntries(_sortedEvents) as BossTimeline;
         return _offsetEvents;
-    }, [_testBossTimeline, _testAbilities])
+    }, [])
 
     const offsetPlayerAbilityEvents: PlayerTimeline = useMemo(() => {
         const _rawEvents: PlayerTimeline = raidCDTimeline
@@ -66,7 +66,7 @@ export default function Planner() {
         const _offsetEvents = offsetEntries(_sortedEvents) as PlayerTimeline;
 
         return _offsetEvents;
-    }, [raidCDTimeline, FLAT_COOLDOWNS])
+    }, [raidCDTimeline, roster])
 
     return (
         <>
