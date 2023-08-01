@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import styles from './Planner.module.scss'
 import { CLASS_COLORS, CLASS_OFFSET_COLORS, _testTimelineEnd, cooldownsBySpec } from "./constants";
 import { RosterMember, BossTimeline, PlayerTimeline } from './types';
@@ -13,16 +14,17 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
     const playerColOffset = staticColumns + maxConcurrentBossAbilities + 1;
 
     const timelineEnd = toSec(_testTimelineEnd);
-    const timelineSecondFrames = Array(timelineEnd).fill(0).map((_, i) => i);
 
     const bossAbilitySpaceForFrame = (time: number) => {
         return Array(maxConcurrentBossAbilities).fill(0)
             .map((_, col) => {
-                return <div style={{
-                    gridRowStart: time + 1,
-                    gridRowEnd: time + 1,
-                    gridColumn: col + bossColOffset
-                }} ></div>
+                return <div key={col}
+                    style={{
+                        gridRowStart: time + 2,
+                        gridRowEnd: time + 2,
+                        gridColumn: col + bossColOffset
+                    }}>
+                </div>
             })
     };
     const bossAbilitiesForFrame = (time: number) => {
@@ -35,41 +37,44 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                     return null;
                 }
                 if (bossAbility.spellId) {
-                    return (<div className={styles['timeline-ability']} style={{
-                        gridRowStart: time + 1,
-                        gridRowEnd: time + 1 + bossAbility.duration + 1,
-                        gridColumn: col + bossColOffset,
-                        whiteSpace: bossAbility.duration === 0 ? 'nowrap' : 'normal',
-                    }}>
+                    return (<div key={col}
+                        className={styles['timeline-ability']} style={{
+                            gridRowStart: time + 2,
+                            gridRowEnd: time + 2 + bossAbility.duration + 1,
+                            gridColumn: col + bossColOffset,
+                            whiteSpace: bossAbility.duration === 0 ? 'nowrap' : 'normal',
+                        }}>
                         <a data-wh-icon-size="tiny"
                             href={`https://www.wowhead.com/spell=${bossAbility.spellId}`}>
                             {bossAbility.ability}
                         </a>
                     </div>)
                 }
-                return (<span className={styles['timeline-ability']} style={{
-                    gridRowStart: time + 1,
-                    gridRowEnd: time + 1 + bossAbility.duration + 1,
-                    gridColumn: col + bossColOffset,
-                }}>
+                return (<span key={col}
+                    className={styles['timeline-ability']}
+                    style={{
+                        gridRowStart: time + 2,
+                        gridRowEnd: time + 2 + bossAbility.duration + 1,
+                        gridColumn: col + bossColOffset,
+                    }}>
                     {bossAbility.ability}
                 </span>)
             });
     };
 
     const playerAbilitySpaceForFrame = (time: number) => {
-        if (maxConcurrentPlayerAbilities === 0) {
-            return [];
-        }
         return Array(maxConcurrentPlayerAbilities).fill(0)
             .map((_, col) => {
-                return <div key={col} style={{ gridRowStart: time + 1, gridRowEnd: time + 1, gridColumn: col + playerColOffset }} ></div>
+                return <div key={col}
+                    style={{
+                        gridRowStart: time + 2,
+                        gridRowEnd: time + 2,
+                        gridColumn: col + playerColOffset
+                    }}>
+                </div>
             });
     };
     const playerAbilitiesForFrame = (time: number) => {
-        if (maxConcurrentPlayerAbilities === 0) {
-            return [];
-        }
         return Array(maxConcurrentPlayerAbilities).fill(0)
             .map((_, col) => {
                 return playerTimeline.find(obae => obae.time === time && obae.offset === col)
@@ -83,8 +88,8 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                     style={{
                         background: CLASS_COLORS[playerAbility.class],
                         color: CLASS_OFFSET_COLORS[playerAbility.class],
-                        gridRowStart: time + 1,
-                        gridRowEnd: time + 1 + playerAbility.duration + 1,
+                        gridRowStart: time + 2,
+                        gridRowEnd: time + 2 + playerAbility.duration + 1,
                         gridColumn: col + playerColOffset
                     }}>
                     <a data-wh-icon-size="tiny"
@@ -124,20 +129,21 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
 
         return (<div className={styles['available-cds']}
             style={{
-                gridRowStart: time + 1,
-                gridRowEnd: time + 1,
+                gridRowStart: time + 2,
+                gridRowEnd: time + 2,
                 gridColumn: 2
             }}>
             {icons}
         </div>)
     };
 
+
     return (
-        <>
-            <h3>Timeline</h3>
-            <div className={styles['timeline-grid']}
+        <div className={`${styles['flex-scroll-wrapper']} ${styles['timeline']}`}>
+            <h3 className={styles['title-bar']}>Timeline</h3>
+            <div className={`${styles['scroll-wrapper']} ${styles['module-box']} ${styles['timeline-grid']}`}
                 style={{
-                    gridTemplateColumns: `repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities + staticColumns}, min-content)`
+                    gridTemplateColumns: `repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities + staticColumns - 1}, min-content) min-content auto`
                 }}>
                 <div className={styles['timeline-header']}
                     style={{
@@ -170,12 +176,11 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                     }}>
                     Raid CDs
                 </div>
-                {timelineSecondFrames.map((s, i) => (<>
-                    <div key={null}
-                        className={styles['timeline-grid-cell']}
+                {Array(timelineEnd + 1).fill(0).map((_, s) => (<Fragment key={s}>
+                    <div className={styles['timeline-grid-cell']}
                         style={{
-                            gridRowStart: i + 2,
-                            gridRowEnd: i + 2,
+                            gridRowStart: s + 2,
+                            gridRowEnd: s + 2,
                             gridColumn: 1
                         }}>
                         {s % 5 === 0 && timelineTimeDisplay(s)}
@@ -188,26 +193,26 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                     {(s % 5 === 0 ? (
                         <div className={styles['timeline-major-ticks']}
                             style={{
-                                gridRowStart: i + 2,
-                                gridRowEnd: i + 2
+                                gridRowStart: s + 2,
+                                gridRowEnd: s + 2
                             }}>
                         </div>
                     ) : (<>
                         <div className={styles['timeline-minor-ticks-emphasis']}
                             style={{
-                                gridRowStart: i + 2,
-                                gridRowEnd: i + 2,
+                                gridRowStart: s + 2,
+                                gridRowEnd: s + 2,
                             }}>
                         </div>
                         <div className={styles['timeline-minor-ticks']}
                             style={{
-                                gridRowStart: i + 2,
-                                gridRowEnd: i + 2,
+                                gridRowStart: s + 2,
+                                gridRowEnd: s + 2,
                             }}>
                         </div>
                     </>))}
-                </>))}
+                </Fragment>))}
             </div>
-        </>
+        </div>
     )
 }

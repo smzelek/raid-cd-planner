@@ -19,10 +19,20 @@ export const toSec = (tstring: string) => {
     return Number(min) * 60 + Number(sec);
 }
 
-export const priorAndOverlapsNow = (now: number, start: number, duration: number) => start < now && (start + duration + 1) >= now;
-export const orderConcurrentEvents = (rawEvents: { time: number }[], searchTime: number, searchIdx: number) => {
-    return rawEvents
-        .map((e, i) => ({ ...e, order: i }))
-        .filter(otherEvt => otherEvt.time === searchTime)
-        .findIndex(e => e.order === searchIdx);
+export const offsetEntries = (rawEvents: { time: number, duration: number, offset: number }[],) => {
+    let offsetExpirations: Record<number, number> = {};
+
+    for (let i in rawEvents) {
+        const evt = rawEvents[i];
+        const firstAvailableOffset = Object.entries(offsetExpirations)
+            .sort(([o1], [o2]) => Number(o1) - Number(o2))
+            .find(([o, exp]) => exp + 1 < evt.time)?.[0]
+        const nextOffset = Object.values(offsetExpirations).length + 1;
+
+        const toUse = Number(firstAvailableOffset || nextOffset);
+        offsetExpirations[toUse] = evt.time + evt.duration;
+        evt.offset = toUse;
+    }
+
+    return rawEvents;
 }

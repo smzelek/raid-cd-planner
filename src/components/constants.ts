@@ -1,4 +1,4 @@
-import { Class, SpecChoices, SpecMatchesClass, Cooldown, RosterMember, Cooldowns, BossAbility, BossTimelineInput, PlayerTimelineInput } from "./types";
+import { Class, SpecChoices, SpecMatchesClass, Cooldown, Cooldowns, BossAbility, BossTimelineInput } from "./types";
 
 export const COOLDOWNS: Cooldowns = {
     'Hunter': [],
@@ -184,19 +184,6 @@ export const cooldownsBySpec = (s: SpecMatchesClass) => {
     return (COOLDOWNS[s.class] as Cooldown<Class>[]).filter((cd) => cd.spec === "ALL" || cd.spec === s.spec)
 }
 
-// ~~~~~~~~~~
-
-export const _testRoster: RosterMember[] = [
-    { name: 'Niinetails', class: 'Paladin', spec: 'Holy', playerId: 'f62d6469-e926-4ea4-8ed2-5deccec2b02d' },
-    { name: 'Ferdaherde', class: 'Warrior', spec: 'Protection', playerId: 'd8b706cc-9a3c-4990-b6c2-135487c47d37' },
-    { name: 'Moonmoose', class: 'Druid', spec: 'Restoration', playerId: 'cbd4d44e-024a-4a93-9c81-c85cffbcda1d' },
-    { name: 'Lysdexic', class: 'Priest', spec: 'Discipline', playerId: 'e7041e2c-f545-4526-8087-d462cd2c6865' },
-    { name: 'Orkwa', class: 'Shaman', spec: 'Restoration', playerId: '42a7973a-322d-4117-87ff-d02c072b6b12' },
-    { name: 'Meepeadeep', class: 'Demon Hunter', spec: 'Havoc', playerId: '1da84713-edf7-47a2-9453-3414def8b420' },
-    { name: 'Willywankers', class: 'Death Knight', spec: 'Unholy', playerId: '78515ff0-1f06-450e-8e04-ff7fd931edca' },
-    { name: 'Tjdkk', class: 'Death Knight', spec: 'Unholy', playerId: '06046982-be38-4251-9dee-7b242d935e7a' },
-];
-
 export const _testAbilities: BossAbility[] = [
     {
         ability: 'Searing Slam',
@@ -270,51 +257,4 @@ export const _testBossTimeline: BossTimelineInput = [
     },
 ];
 
-export const _testRaidCDTimeline: PlayerTimelineInput = [
-    {
-        ability: 'Anti-Magic Zone',
-        times: ['0:21', '2:35', '4:51'],
-        playerId: _testRoster.find(m => m.name === "Willywankers")!.playerId,
-    },
-    {
-        ability: 'Power Word: Barrier',
-        times: ['1:07', '5:20'],
-        playerId: _testRoster.find(m => m.name === "Lysdexic")!.playerId,
-    },
-    {
-        ability: 'Spirit Link Totem',
-        times: ['0:21', '3:21', '6:20'],
-        playerId: _testRoster.find(m => m.name === "Orkwa")!.playerId,
-    },
-    {
-        ability: 'Ascendance',
-        times: ['1:07', '4:51'],
-        playerId: _testRoster.find(m => m.name === "Orkwa")!.playerId,
-    },
-    {
-        ability: 'Healing Tide Totem',
-        times: ['2:35', '5:37'],
-        playerId: _testRoster.find(m => m.name === "Orkwa")!.playerId,
-    },
-    {
-        ability: 'Darkness',
-        times: ['0:21', '5:37'],
-        playerId: _testRoster.find(m => m.name === "Meepeadeep")!.playerId,
-    },
-    {
-        ability: 'Rallying Cry',
-        times: ['1:07', '4:08'],
-        playerId: _testRoster.find(m => m.name === "Ferdaherde")!.playerId,
-    },
-    {
-        ability: 'Aura Mastery',
-        times: ['1:53', '5:55'],
-        playerId: _testRoster.find(m => m.name === "Niinetails")!.playerId,
-    },
-    {
-        ability: 'Tranquility',
-        times: ['1:53', '4:08', '6:08'],
-        playerId: _testRoster.find(m => m.name === "Moonmoose")!.playerId,
-    }
-]
 

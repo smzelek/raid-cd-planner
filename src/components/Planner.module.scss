@@ -17,18 +17,114 @@
 }
 
 .builder {
-  height: 100%;
-  overflow: scroll;
   flex-grow: 1;
+  display: grid;
+  grid-template-rows: 70fr 30fr;
+  gap: 20px;
+  max-width: 600px;
+}
+
+.roster {
+  .roster-member {
+    margin-top: 20px;
+  }
+
+  .cooldown-section {
+    margin-top: 5px;
+  }
+
+  .cooldown-editor {
+    display: flex;
+    align-items: center;
+    margin-left: 5px;
+
+    a>span {
+      height: 28px;
+      width: 28px;
+
+      >ins {
+        height: 25px;
+        width: 25px;
+        left: 3px;
+        top: 2px;
+      }
+
+      >del {
+        height: 30px;
+        width: 30px;
+        top: -1px;
+        background-size: contain;
+      }
+    }
+
+    .timing-editor {
+      width: 200px;
+      height: 26px;
+      margin-left: 3px;
+      border-radius: 6px;
+      padding-left: 8px;
+      border: 1px solid #646464;
+      background-color: rgb(15, 15, 15);
+
+      &:focus-within {
+        border: 1px solid #1b6dff;
+        outline: 1px solid #1b6dff;
+      }
+    }
+
+    .override-cd-editor,
+    .override-dur-editor {
+      width: 95px;
+      height: 26px;
+      margin-left: 3px;
+      border-radius: 6px;
+      padding-left: 8px;
+      border: 1px solid #646464;
+      background-color: rgb(15, 15, 15);
+
+      &:focus-within {
+        border: 1px solid #1b6dff;
+        outline: 1px solid #1b6dff;
+      }
+    }
+
+    .override-dur-editor {
+      width: 87px;
+    }
+  }
+}
+
+.cheat-sheets {
+  display: flex;
+  gap: 20px;
 
   a {
     display: inline-block;
   }
 }
 
+.title-bar {
+  padding: 10px;
+  background: rgb(24, 24, 24);
+  border-bottom: 1px solid gray;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    margin-left: 5px;
+  }
+}
+
+.module-box {
+  padding: 10px;
+  padding-bottom: 40px;
+}
+
 .timeline {
-  height: 100%;
-  overflow: scroll;
+  flex-grow: 1;
+  border: 1px solid gray;
+  border-radius: 4px;
 }
 
 .class-text {
@@ -134,4 +230,13 @@
 
 .scroll-wrapper {
   overflow-y: scroll;
+  height: 100%;
+}
+
+.flex-scroll-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0px;
+  border: 1px solid gray;
+  border-radius: 4px;
 }

@@ -1,21 +1,22 @@
 import styles from './Planner.module.scss'
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { FLAT_COOLDOWNS, _testAbilities, _testBossTimeline, _testRaidCDTimeline, _testRoster, _testTimelineEnd } from './constants';
-import { toSec, orderConcurrentEvents, priorAndOverlapsNow } from './utils';
+import { FLAT_COOLDOWNS, _testAbilities, _testBossTimeline, _testTimelineEnd } from './constants';
+import { toSec, offsetEntries } from './utils';
 import CheatSheet from './CheatSheet';
 import Roster from './Roster';
 import Timeline from './Timeline';
-import { RosterMember, BossTimeline, BossAbilityEvent, PlayerTimeline, PlayerAbilityEvent } from './types';
+import { RosterMember, BossTimeline, PlayerTimeline, PlayerTimelineInput } from './types';
 
 export default function Planner() {
     const effectRan = useRef(false);
-    const [roster, setRoster] = useState<RosterMember[]>(_testRoster);
+    const [roster, setRoster] = useState<RosterMember[]>([]);
+    const [raidCDTimeline, setRaidCDTimeline] = useState<PlayerTimelineInput>([]);
 
     useEffect(() => {
         if (effectRan.current && (window as any).WH) {
             (window as any).WH.Tooltips.refreshLinks()
         }
-    }, [roster])
+    }, [roster, raidCDTimeline])
 
     useEffect(() => {
         if (!effectRan.current) {
@@ -28,35 +29,24 @@ export default function Planner() {
         return () => { effectRan.current = true };
     }, [])
 
-    const raidCDTimeline = useMemo(() => {
-        return _testRaidCDTimeline.filter(rcd => roster.some(r => r.playerId === rcd.playerId))
-    }, [_testRaidCDTimeline, roster])
-
     const offsetBossAbilityEvents: BossTimeline = useMemo(() => {
-        const _rawEvents: BossAbilityEvent[] = _testBossTimeline
+        const _rawEvents: BossTimeline = _testBossTimeline
             .map(a => a.times.map(at => ({
                 ..._testAbilities.find(_ta => _ta.ability === a.ability)!,
-                time: toSec(at)
+                time: toSec(at),
+                offset: 0,
             })))
             .flat(1)
 
-        const eventTimeline = _rawEvents.map((evt, i) => {
-            const stillActive = _rawEvents.filter((otherEvt, ii) => i != ii && priorAndOverlapsNow(evt.time, otherEvt.time, otherEvt.duration));
-            const concurrentOrder = orderConcurrentEvents(_rawEvents, evt.time, i);
 
-            return {
-                ...evt,
-                offset: stillActive.length + concurrentOrder
-            }
-        });
-
-        eventTimeline.sort((a, b) => (a.time + a.offset) - (b.time + b.offset));
-        return eventTimeline;
+        const _sortedEvents = _rawEvents.sort((a, b) => a.time - b.time);
+        const _offsetEvents = offsetEntries(_sortedEvents) as BossTimeline;
+        return _offsetEvents;
     }, [_testBossTimeline, _testAbilities])
 
     const offsetPlayerAbilityEvents: PlayerTimeline = useMemo(() => {
-        const _rawEvents: PlayerAbilityEvent[] = raidCDTimeline
-            .map<PlayerAbilityEvent[]>(evt => evt.times.map(at => {
+        const _rawEvents: PlayerTimeline = raidCDTimeline
+            .map(evt => evt.times.map(at => {
                 const ability = FLAT_COOLDOWNS.find(cd => cd.ability === evt.ability)!;
                 const player = roster.find(member => member.playerId === evt.playerId)!;
                 return {
@@ -67,22 +57,15 @@ export default function Planner() {
                     playerId: evt.playerId,
                     name: player.name,
                     class: player.class,
+                    offset: 0,
                 }
             }))
             .flat(1);
 
-        const eventTimeline = _rawEvents.map((evt, i) => {
-            const stillActive = _rawEvents.filter((otherEvt, ii) => i != ii && priorAndOverlapsNow(evt.time, otherEvt.time, otherEvt.duration));
-            const concurrentOrder = orderConcurrentEvents(_rawEvents, evt.time, i);
+        const _sortedEvents = _rawEvents.sort((a, b) => (a.time + a.offset) - (b.time + b.offset));
+        const _offsetEvents = offsetEntries(_sortedEvents) as PlayerTimeline;
 
-            return {
-                ...evt,
-                offset: stillActive.length + concurrentOrder
-            }
-        });
-
-        eventTimeline.sort((a, b) => (a.time + a.offset) - (b.time + b.offset));
-        return eventTimeline;
+        return _offsetEvents;
     }, [raidCDTimeline, FLAT_COOLDOWNS])
 
     return (
@@ -92,12 +75,10 @@ export default function Planner() {
             </header>
             <main className={styles['main']}>
                 <section className={styles.builder}>
-                    <Roster roster={roster} setRoster={setRoster} />
+                    <Roster roster={roster} setRoster={setRoster} raidCDTimeline={offsetPlayerAbilityEvents} setRaidCDTimeline={setRaidCDTimeline} />
                     <CheatSheet roster={roster} />
                 </section>
-                <section className={styles.timeline}>
-                    <Timeline roster={roster} bossTimeline={offsetBossAbilityEvents} playerTimeline={offsetPlayerAbilityEvents} />
-                </section>
+                <Timeline roster={roster} bossTimeline={offsetBossAbilityEvents} playerTimeline={offsetPlayerAbilityEvents} />
             </main>
         </>
     )
