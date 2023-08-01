@@ -251,8 +251,6 @@ const _testRoster: RosterMember[] = [
     { name: 'Tjdkk', class: 'Death Knight', spec: 'Unholy', playerId: '06046982-be38-4251-9dee-7b242d935e7a' },
 ];
 
-console.log(_testRoster)
-
 const _testAbilities: BossAbility[] = [
     {
         ability: 'Searing Slam',
@@ -422,7 +420,6 @@ export default function Planner() {
     useEffect(() => {
         if (effectRan.current && (window as any).WH) {
             (window as any).WH.Tooltips.refreshLinks()
-            console.log('refing wh')
         }
     }, [roster])
 
@@ -434,7 +431,6 @@ export default function Planner() {
                 (window as any).whTooltips = { 'colorLinks': true, 'iconizeLinks': true, 'renameLinks': false, 'iconSize': 'small' };
                 scriptTag.src = "https://wow.zamimg.com/js/tooltips.js"
                 document.head.appendChild(scriptTag)
-                console.log('initing wh')
             })
         }
 
@@ -479,7 +475,6 @@ export default function Planner() {
             .map<PlayerAbilityEvent[]>(evt => evt.times.map(at => {
                 const ability = FLAT_COOLDOWNS.find(cd => cd.ability === evt.ability)!;
                 const player = roster.find(member => member.playerId === evt.playerId)!;
-                console.log(player, evt)
                 return {
                     ...ability,
                     time: toSec(at),
@@ -508,9 +503,9 @@ export default function Planner() {
 
     const maxConcurrentBossAbilities = Math.max(...offsetBossAbilityEvents.map(obae => obae.offset)) + 1;
     const maxConcurrentPlayerAbilities = Math.max(...offsetPlayerAbilityEvents.map(obae => obae.offset)) + 1;
-    const timeColumns = 1;
-    const bossColOffset = timeColumns + 1;
-    const playerColOffset = timeColumns + maxConcurrentBossAbilities + 1;
+    const staticColumns = 2;
+    const bossColOffset = staticColumns + 1;
+    const playerColOffset = staticColumns + maxConcurrentBossAbilities + 1;
 
     const bossAbilitySpaceForFrame = (time: number) => {
         return Array(maxConcurrentBossAbilities).fill(0)
@@ -537,7 +532,7 @@ export default function Planner() {
                         gridRowEnd: time + 1 + bossAbility.duration + 1,
                         gridColumn: col + bossColOffset
                     }}>
-                        <a data-wh-icon-size="small"
+                        <a data-wh-icon-size="tiny"
                             href={`https://www.wowhead.com/spell=${bossAbility.spellId}`}>
                             {bossAbility.ability}
                         </a>
@@ -575,7 +570,7 @@ export default function Planner() {
                     gridRowEnd: time + 1 + playerAbility.duration + 1,
                     gridColumn: col + playerColOffset
                 }}>
-                    <a data-wh-icon-size="small"
+                    <a data-wh-icon-size="tiny"
                         href={`https://www.wowhead.com/spell=${playerAbility.spellId}`}>
                         {playerAbility.name}'s {playerAbility.ability}
                     </a>
@@ -583,10 +578,42 @@ export default function Planner() {
             });
     };
 
-    console.log(offsetBossAbilityEvents)
-    console.log(offsetPlayerAbilityEvents)
-    console.log(maxConcurrentBossAbilities)
-    console.log(maxConcurrentPlayerAbilities)
+    const availableRaidCDsForFrame = (time: number) => {
+        if (!offsetBossAbilityEvents.find(obae => obae.time === time)) {
+            return [];
+        }
+
+        const fullRosterCds = roster.map(member => {
+            const cooldowns = cooldownsBySpec(member);
+            return cooldowns.map(cd => ({
+                ...cd,
+                ...member,
+            }))
+        }).flat(1);
+
+        const available = fullRosterCds.filter(cd => {
+            const lastUse = offsetPlayerAbilityEvents.findLast(evt => evt.playerId === cd.playerId && evt.spellId === cd.spellId && evt.time <= time);
+            if (!lastUse) {
+                return true;
+            }
+            return lastUse.time + cd.cooldown <= time;
+        })
+
+        const icons = (available.map((cd) => (
+            <a data-wh-icon-size="tiny"
+                href={`https://www.wowhead.com/spell=${cd.spellId}`}>
+            </a>
+        )));
+
+        return (<div className={styles['available-cds']}
+            style={{
+                gridRowStart: time + 1,
+                gridRowEnd: time + 1,
+                gridColumn: 2
+            }}>
+            {icons}
+        </div>)
+    };
 
     return (
         <>
@@ -642,150 +669,79 @@ export default function Planner() {
                 </section>
                 <section className={styles.timeline}>
                     <h3>Timeline</h3>
-                    <div className={styles['timeline-grid']} style={{
-                        gridTemplateColumns: `repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities + 1}, max-content)`
-                    }}>
-                        {timelineSecondFrames.map((s, i) => {
-                            if (s % 5 === 0) {
-                                return (<>
-                                    <div style={{
-                                        gridRowStart: i + 1,
-                                        gridRowEnd: i + 1,
-                                        gridColumn: 1
-                                    }}
-                                        className={styles['timeline-grid-cell']}>{timelineTimeDisplay(s)}</div>
-                                    {bossAbilitySpaceForFrame(s)}
-                                    {bossAbilitiesForFrame(s)}
-                                    {playerAbilitySpaceForFrame(s)}
-                                    {playerAbilitiesForFrame(s)}
-                                    <div style={{
-                                        gridRowStart: i + 1,
-                                        gridRowEnd: i + 1
-                                    }}
-                                        className={styles['timeline-major-ticks']}></div>
-                                </>)
-                            }
-                            return (
-                                <>
-                                    <div style={{
-                                        gridRowStart: i + 1,
-                                        gridRowEnd: i + 1,
-                                        gridColumn: 1
-                                    }}
-                                        className={styles['timeline-grid-cell']}></div>
-                                    {bossAbilitySpaceForFrame(s)}
-                                    {bossAbilitiesForFrame(s)}
-                                    {playerAbilitySpaceForFrame(s)}
-                                    {playerAbilitiesForFrame(s)}
-                                    <div style={{
-                                        gridRowStart: i + 1,
-                                        gridRowEnd: i + 1,
-                                    }}
-                                        className={styles['timeline-minor-ticks-emphasis']}></div>
-                                    <div style={{
-                                        gridRowStart: i + 1,
-                                        gridRowEnd: i + 1,
-                                    }}
-                                        className={styles['timeline-minor-ticks']}></div>
-                                </>
-                            )
-                        })}
+                    <div className={styles['timeline-grid']}
+                        style={{
+                            gridTemplateColumns: `repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities + staticColumns}, max-content)`
+                        }}>
+                        <div className={styles['timeline-header']}
+                            style={{
+                                gridRow: 1,
+                                gridColumnStart: 1,
+                                gridColumnEnd: 1,
+                            }}>
+                        </div>
+                        <div className={styles['timeline-header']}
+                            style={{
+                                gridRow: 1,
+                                gridColumnStart: 2,
+                                gridColumnEnd: 2,
+                            }}>
+                            Available
+                        </div>
+                        <div className={styles['timeline-header']}
+                            style={{
+                                gridRow: 1,
+                                gridColumnStart: bossColOffset,
+                                gridColumnEnd: bossColOffset + maxConcurrentBossAbilities,
+                            }}>
+                            Boss Abilities
+                        </div>
+                        <div className={styles['timeline-header']}
+                            style={{
+                                gridRow: 1,
+                                gridColumnStart: playerColOffset,
+                                gridColumnEnd: playerColOffset + maxConcurrentPlayerAbilities,
+                            }}>
+                            Raid CDs
+                        </div>
+                        {timelineSecondFrames.map((s, i) => (<>
+                            <div className={styles['timeline-grid-cell']}
+                                style={{
+                                    gridRowStart: i + 2,
+                                    gridRowEnd: i + 2,
+                                    gridColumn: 1
+                                }}>
+                                {s % 5 === 0 && timelineTimeDisplay(s)}
+                            </div>
+                            {availableRaidCDsForFrame(s)}
+                            {bossAbilitySpaceForFrame(s)}
+                            {bossAbilitiesForFrame(s)}
+                            {playerAbilitySpaceForFrame(s)}
+                            {playerAbilitiesForFrame(s)}
+                            {(s % 5 === 0 ? (
+                                <div className={styles['timeline-major-ticks']}
+                                    style={{
+                                        gridRowStart: i + 2,
+                                        gridRowEnd: i + 2
+                                    }}>
+                                </div>
+                            ) : (<>
+                                <div className={styles['timeline-minor-ticks-emphasis']}
+                                    style={{
+                                        gridRowStart: i + 2,
+                                        gridRowEnd: i + 2,
+                                    }}>
+                                </div>
+                                <div className={styles['timeline-minor-ticks']}
+                                    style={{
+                                        gridRowStart: i + 2,
+                                        gridRowEnd: i + 2,
+                                    }}>
+                                </div>
+                            </>))}
+                        </>))}
                     </div>
                 </section>
-
-                {/* <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div> */}
             </main>
         </>
     )

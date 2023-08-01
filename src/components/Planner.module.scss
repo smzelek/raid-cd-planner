@@ -8,7 +8,6 @@
   a {
     display: flex;
     align-items: center;
-    padding-right: 3px;
     font-size: 14px;
   }
 }
@@ -54,15 +53,26 @@
   width: 500px;
   grid-auto-rows: 15px;
 
-  .timeline-ability {
-    margin-left: 5px;
-    background: purple;
-    color: black;
-    border-radius: 4px;
-    min-height: 26px;
-    height: 100%;
+  .timeline-header {
+    font-size: 14px;
+    margin-right: 10px;
+    padding-left: 5px;
   }
 
+  .available-cds {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .timeline-ability {
+    margin-left: 5px;
+    padding: 2px;
+    background: purple;
+    color: white;
+    border-radius: 4px;
+    min-height: 21px;
+    height: 100%;
+  }
 
   .timeline-grid-cell {
     height: 15px;
