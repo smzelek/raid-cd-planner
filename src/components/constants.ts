@@ -233,7 +233,7 @@ export const _testAbilities: BossAbility[] = [
     {
         ability: 'Intermission',
         spellId: null,
-        duration: 20
+        duration: 19
     }
 ]
 
@@ -241,19 +241,19 @@ export const _testTimelineEnd = '6:20';
 export const _testBossTimeline: BossTimelineInput = [
     {
         ability: 'Charged Smash',
-        times: ['0:21', '1:07', '2:35', '3:21', '4:51', '5:37']
+        times: ['0:27', '1:12', '2:40', '3:26', '4:53', '5:39']
     },
     {
         ability: 'Shadowflame Energy',
-        times: ['0:16', '1:01', '1:34', '2:30', '3:16', '3:48', '4:43', '5:29', '6:01']
+        times: ['0:22', '1:08', '1:41', '2:37', '3:23', '3:56', '4:50', '5:36', '6:09']
     },
     {
         ability: 'Intermission',
-        times: ['1:53', '4:08']
+        times: ['1:52', '4:05']
     },
     {
         ability: 'Searing Slam',
-        times: ['5:20', '5:55']
+        times: ['5:28', '6:01']
     },
 ];
 
