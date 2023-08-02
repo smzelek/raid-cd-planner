@@ -42,7 +42,7 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                             gridRowStart: time + 2,
                             gridRowEnd: time + 2 + bossAbility.duration + 1,
                             gridColumn: col + bossColOffset,
-                            whiteSpace: bossAbility.duration === 0 ? 'nowrap' : 'normal',
+                            whiteSpace: bossAbility.duration < 3 ? 'nowrap' : 'normal',
                         }}>
                         <a data-wh-icon-size="tiny"
                             href={`https://www.wowhead.com/spell=${bossAbility.spellId}`}>
@@ -90,7 +90,8 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                         color: CLASS_OFFSET_COLORS[playerAbility.class],
                         gridRowStart: time + 2,
                         gridRowEnd: time + 2 + playerAbility.duration + 1,
-                        gridColumn: col + playerColOffset
+                        gridColumn: col + playerColOffset,
+                        whiteSpace: playerAbility.duration < 3 ? 'nowrap' : 'normal',
                     }}>
                     <a data-wh-icon-size="tiny"
                         href={`https://www.wowhead.com/spell=${playerAbility.spellId}`}>
@@ -143,7 +144,7 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
             <h3 className={styles['title-bar']}>Timeline</h3>
             <div className={`${styles['scroll-wrapper']} ${styles['module-box']} ${styles['timeline-grid']}`}
                 style={{
-                    gridTemplateColumns: `repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities + staticColumns - 1}, min-content) min-content auto`
+                    gridTemplateColumns: `min-content min-content repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities}, minmax(100px, min-content)) min-content auto`
                 }}>
                 <div className={styles['timeline-header']}
                     style={{

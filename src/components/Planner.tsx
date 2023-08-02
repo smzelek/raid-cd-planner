@@ -48,7 +48,10 @@ export default function Planner() {
         const _rawEvents: PlayerTimeline = raidCDTimeline
             .map(evt => evt.times.map(at => {
                 const ability = FLAT_COOLDOWNS.find(cd => cd.ability === evt.ability)!;
-                const player = roster.find(member => member.playerId === evt.playerId)!;
+                const player = roster.find(member => member.playerId === evt.playerId);
+                if (!player) {
+                    return null;
+                }
                 return {
                     ...ability,
                     time: toSec(at),
@@ -60,7 +63,8 @@ export default function Planner() {
                     offset: 0,
                 }
             }))
-            .flat(1);
+            .flat(1)
+            .filter(e => !!e) as PlayerTimeline;
 
         const _sortedEvents = _rawEvents.sort((a, b) => (a.time + a.offset) - (b.time + b.offset));
         const _offsetEvents = offsetEntries(_sortedEvents) as PlayerTimeline;

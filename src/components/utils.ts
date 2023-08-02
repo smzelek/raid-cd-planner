@@ -27,7 +27,7 @@ export const offsetEntries = (rawEvents: { time: number, duration: number, offse
         const firstAvailableOffset = Object.entries(offsetExpirations)
             .sort(([o1], [o2]) => Number(o1) - Number(o2))
             .find(([o, exp]) => exp + 1 < evt.time)?.[0]
-        const nextOffset = Object.values(offsetExpirations).length + 1;
+        const nextOffset = Object.values(offsetExpirations).length;
 
         const toUse = Number(firstAvailableOffset || nextOffset);
         offsetExpirations[toUse] = evt.time + evt.duration;

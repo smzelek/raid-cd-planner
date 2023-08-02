@@ -70,6 +70,7 @@ export default function Roster(props: {
         navigator.clipboard.writeText(encoded);
 
     }
+
     const importFromSavedString = () => {
         const saveStr = prompt('Paste saved profile here');
         if (!saveStr) {
@@ -113,7 +114,13 @@ export default function Roster(props: {
                 {roster.map((member, i) => (
                     <div key={member.playerId} className={styles['roster-member']}>
                         <div >
-                            <input className={`${styles['player-text']} ${styles['player-name-editor']}`} style={{ color: CLASS_COLORS[member.class] }} defaultValue={member.name} />
+                            <input className={`${styles['player-text']} 
+                            ${styles['player-name-editor']}`}
+                                style={{ color: CLASS_COLORS[member.class] }}
+                                value={member.name}
+                                onChange={(e) => {
+                                    setRoster([...roster.slice(0, i), { ...roster[i], name: e.target.value }, ...roster.slice(i + 1)])
+                                }} />
                             <button onClick={() => {
                                 setRoster([...roster.slice(0, i), ...roster.slice(i + 1)])
                             }}>remove</button>

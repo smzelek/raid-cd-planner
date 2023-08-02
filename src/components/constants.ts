@@ -157,7 +157,7 @@ export const CLASS_OFFSET_COLORS: Record<Class, string> = {
     'Shaman': '#FFFFFF',
     'Mage': '#FFFFFF',
     'Warlock': '#FFFFFF',
-    'Monk': '#FFFFFF',
+    'Monk': '#000000',
     'Druid': '#FFFFFF',
     'Demon Hunter': '#FFFFFF',
     'Death Knight': '#FFFFFF',
