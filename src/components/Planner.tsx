@@ -24,9 +24,8 @@ export default function Planner() {
             (window as any).whTooltips = { 'colorLinks': true, 'iconizeLinks': true, 'renameLinks': false, 'iconSize': 'small' };
             scriptTag.src = "https://wow.zamimg.com/js/tooltips.js"
             document.head.appendChild(scriptTag)
+            effectRan.current = true
         }
-
-        return () => { effectRan.current = true };
     }, [])
 
     const offsetBossAbilityEvents: BossTimeline = useMemo(() => {
