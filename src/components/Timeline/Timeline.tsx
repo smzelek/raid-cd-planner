@@ -1,9 +1,9 @@
 import { Fragment } from 'react';
-import styles from './Planner.module.scss'
-import { CLASS_COLORS, CLASS_OFFSET_COLORS, _testTimelineEnd } from "./constants";
-import { RosterMember, BossTimelineData, PlayerTimelineData } from './types';
-import { timelineTimeDisplay, toSec } from "./utils";
-import DummyIcon from './DummyIcon';
+import styles from '@/styles/Global.module.scss'
+import { CLASS_COLORS, CLASS_OFFSET_COLORS, _testTimelineEnd } from "@/constants";
+import { BossTimelineData, PlayerTimelineData } from '@/types';
+import { timelineTimeDisplay, toSec } from "@/utils";
+import DummyIcon from '../DummyIcon/DummyIcon';
 
 export default function Timeline(props: { bossTimeline: BossTimelineData, playerTimeline: PlayerTimelineData }) {
     const { bossTimeline, playerTimeline } = props;

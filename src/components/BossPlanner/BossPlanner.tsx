@@ -1,9 +1,9 @@
-import Select from "./Select";
-import styles from './Planner.module.scss'
-import { BOSSES, BOSS_ABILITIES, } from "./constants";
-import { UserBossPlan, Bosses, } from "./types";
+import Select from "../Select/Select";
+import styles from '@/styles/Global.module.scss'
+import { BOSSES, BOSS_ABILITIES, } from "@/constants";
+import { UserBossPlan, Bosses, } from "@/types";
 
-import DummyIcon from "./DummyIcon";
+import DummyIcon from "../DummyIcon/DummyIcon";
 
 export default function BossPlanner(props: {
     bossPlan: UserBossPlan,

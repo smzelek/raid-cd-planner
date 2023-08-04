@@ -1,13 +1,13 @@
-import styles from './Planner.module.scss'
+import styles from '@/styles/Global.module.scss'
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { BOSS_ABILITIES, FLAT_COOLDOWNS, _testBossTimeline, _testTimelineEnd, cooldownsBySpec } from './constants';
-import { toSec, offsetEntries, timelineTimeDisplay } from './utils';
-import CheatSheet from './CheatSheet';
-import RaidPlanner from './Roster';
-import Timeline from './Timeline';
-import { BossTimelineData, PlayerTimelineData, UserPlayerPlan, UserBossPlan, SavedProfile, PlayerId, Cooldown, Class } from './types';
-import BossPlanner from './BossPlanner';
-import CopyButton from './CopyButton';
+import { BOSS_ABILITIES, FLAT_COOLDOWNS, _testBossTimeline, _testTimelineEnd, cooldownsBySpec } from '@/constants';
+import { toSec, offsetEntries, timelineTimeDisplay } from '@/utils';
+import CheatSheet from '@/components/CheatSheet/CheatSheet';
+import RaidPlanner from '@/components/PlayerPlanner/PlayerPlanner';
+import Timeline from '@/components/Timeline/Timeline';
+import { BossTimelineData, PlayerTimelineData, UserPlayerPlan, UserBossPlan, SavedProfile, PlayerId, Cooldown, Class } from '@/types';
+import BossPlanner from '@/components/BossPlanner/BossPlanner';
+import CopyButton from '@/components/CopyButton/CopyButton';
 
 export default function Planner() {
     const effectRan = useRef(false);

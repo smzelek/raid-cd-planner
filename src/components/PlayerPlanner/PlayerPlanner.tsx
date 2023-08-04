@@ -1,9 +1,9 @@
-import Select from "./Select";
-import styles from './Planner.module.scss'
-import { CLASS_COLORS, SPECS_WITH_CDS, cooldownsBySpec } from "./constants";
-import { Class, Cooldown, UserPlayerPlan, RaidCDErrors, } from "./types";
+import Select from "../Select/Select";
+import styles from '@/styles/Global.module.scss'
+import { CLASS_COLORS, SPECS_WITH_CDS, cooldownsBySpec } from "@/constants";
+import { Class, Cooldown, UserPlayerPlan, RaidCDErrors, } from "@/types";
+import { toSec } from "@/utils";
 import { useState } from "react";
-import { toSec } from "./utils";
 
 export default function PlayerPlanner(props: {
     playerPlan: UserPlayerPlan,

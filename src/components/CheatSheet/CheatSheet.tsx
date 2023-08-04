@@ -1,7 +1,7 @@
-import styles from './Planner.module.scss'
-import { CLASS_COLORS, SPECS_WITH_CDS, cooldownsBySpec } from "../constants";
-import { RosterMember, SpecChoices } from "../types";
-import { cooldownTimeDisplay } from "../utils";
+import styles from '@/styles/Global.module.scss'
+import { CLASS_COLORS, SPECS_WITH_CDS, cooldownsBySpec } from "@/constants";
+import { RosterMember, SpecChoices } from "@/types";
+import { cooldownTimeDisplay } from "@/utils";
 
 export default function CheatSheet(props: { roster: RosterMember[] }) {
     const { roster } = props;
