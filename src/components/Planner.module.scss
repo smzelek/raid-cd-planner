@@ -13,7 +13,7 @@
 }
 
 .header {
-  padding: 20px;
+  padding: 10px 20px;
 }
 
 .builder {
@@ -22,6 +22,44 @@
   grid-template-rows: 70fr 30fr;
   gap: 20px;
   max-width: 600px;
+}
+
+.boss {
+  .boss-ability-editor {
+    display: grid;
+    grid-template-areas:
+      "a b"
+      "a c";
+    margin-left: 5px;
+    margin-top: 15px;
+
+    .ability-icon {
+      grid-area: a;
+    }
+
+    .ability-name {
+      grid-area: b;
+    }
+
+    .timing-editor {
+      grid-area: c;
+    }
+
+    .timing-editor {
+      width: 200px;
+      height: 26px;
+      margin-left: 3px;
+      border-radius: 6px;
+      padding-left: 8px;
+      border: 1px solid #646464;
+      background-color: rgb(15, 15, 15);
+
+      &:focus-within {
+        border: 1px solid #1b6dff;
+        outline: 1px solid #1b6dff;
+      }
+    }
+  }
 }
 
 .roster {
@@ -103,6 +141,23 @@
   }
 }
 
+.app-title-bar {
+  display: flex;
+  justify-content: space-between;
+
+  .app-title-actions {
+    display: flex;
+    align-items: center;
+  }
+
+  button {
+    margin-left: 5px;
+    font-size: 15px;
+    padding: 5px;
+    cursor: pointer;
+  }
+}
+
 .title-bar {
   padding: 10px;
   background: rgb(24, 24, 24);
@@ -110,10 +165,6 @@
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
-
-  button {
-    margin-left: 5px;
-  }
 }
 
 .module-box {
@@ -125,6 +176,7 @@
   flex-grow: 1;
   border: 1px solid gray;
   border-radius: 4px;
+  min-width: 0px;
 }
 
 .class-text {
@@ -181,16 +233,22 @@
   .timeline-ability {
     margin-left: 5px;
     padding: 4px;
-    background: purple;
+    background: rgb(45, 5, 45);
     border: 1.5px solid rgb(156, 156, 156);
     box-sizing: content-box;
     color: white;
     border-radius: 4px;
     min-height: 20px;
     height: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    font-size: 16px;
 
     a {
       background-position-y: 2px;
+      transform: scale(0.8) translate(-5px, -4px);
+      margin-right: -4px;
     }
   }
 
@@ -231,6 +289,7 @@
 .scroll-wrapper {
   overflow-y: scroll;
   height: 100%;
+  overflow-x: auto;
 }
 
 .flex-scroll-wrapper {

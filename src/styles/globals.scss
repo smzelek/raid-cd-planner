@@ -27,10 +27,12 @@ a {
   display: inline-block;
 }
 
+::-webkit-scrollbar-corner { background: rgba(0,0,0,0.5); }
 
 ::-webkit-scrollbar {
   background-color: none;
   width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {

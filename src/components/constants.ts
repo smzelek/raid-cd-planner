@@ -1,4 +1,62 @@
-import { Class, SpecChoices, SpecMatchesClass, Cooldown, Cooldowns, BossAbility, BossTimelineInput } from "./types";
+import { Class, SpecChoices, SpecMatchesClass, Cooldown, Cooldowns, BossAbility, UserBossPlan, Bosses, BossAbilities } from "./types";
+
+export const BOSSES: Bosses[] = ['Rashok'];
+
+export const BOSS_ABILITIES: BossAbilities = {
+    'Rashok': [
+        {
+            ability: 'Searing Slam',
+            spellId: 405821,
+            duration: 0,
+        },
+        {
+            ability: 'Shadowflame Energy',
+            spellId: 410077,
+            duration: 5,
+        },
+        {
+            ability: 'Charged Smash',
+            spellId: 400777,
+            duration: 0,
+        },
+        {
+            ability: 'Overcharged',
+            spellId: 405827,
+            duration: 5,
+        },
+        {
+            ability: 'Conduit Flare',
+            spellId: 405828,
+            duration: 5,
+        },
+        {
+            ability: 'Scorching Heatwave',
+            spellId: 404445,
+            duration: 0,
+        },
+        {
+            ability: 'Scorched Flesh',
+            spellId: 408204,
+            duration: 0,
+        },
+        {
+            ability: 'Smoldering Rage',
+            spellId: 406165,
+            duration: 0,
+        },
+        {
+            ability: 'Shattered Conduit',
+            spellId: 410690,
+            duration: 0,
+        },
+        {
+            ability: 'Intermission',
+            spellId: null,
+            duration: 19
+        }
+    ]
+};
+
 
 export const COOLDOWNS: Cooldowns = {
     'Hunter': [],
@@ -184,77 +242,10 @@ export const cooldownsBySpec = (s: SpecMatchesClass) => {
     return (COOLDOWNS[s.class] as Cooldown<Class>[]).filter((cd) => cd.spec === "ALL" || cd.spec === s.spec)
 }
 
-export const _testAbilities: BossAbility[] = [
-    {
-        ability: 'Searing Slam',
-        spellId: 405821,
-        duration: 0,
-    },
-    {
-        ability: 'Shadowflame Energy',
-        spellId: 410077,
-        duration: 5,
-    },
-    {
-        ability: 'Charged Smash',
-        spellId: 400777,
-        duration: 0,
-    },
-    {
-        ability: 'Overcharged',
-        spellId: 405827,
-        duration: 5,
-    },
-    {
-        ability: 'Conduit Flare',
-        spellId: 405828,
-        duration: 5,
-    },
-    {
-        ability: 'Scorching Heatwave',
-        spellId: 404445,
-        duration: 0,
-    },
-    {
-        ability: 'Scorched Flesh',
-        spellId: 408204,
-        duration: 0,
-    },
-    {
-        ability: 'Smoldering Rage',
-        spellId: 406165,
-        duration: 0,
-    },
-    {
-        ability: 'Shattered Conduit',
-        spellId: 410690,
-        duration: 0,
-    },
-    {
-        ability: 'Intermission',
-        spellId: null,
-        duration: 19
-    }
-]
-
 export const _testTimelineEnd = '6:20';
-export const _testBossTimeline: BossTimelineInput = [
-    {
-        ability: 'Charged Smash',
-        times: ['0:27', '1:12', '2:40', '3:26', '4:53', '5:39']
-    },
-    {
-        ability: 'Shadowflame Energy',
-        times: ['0:22', '1:08', '1:41', '2:37', '3:23', '3:56', '4:50', '5:36', '6:09']
-    },
-    {
-        ability: 'Intermission',
-        times: ['1:52', '4:05']
-    },
-    {
-        ability: 'Searing Slam',
-        times: ['5:28', '6:01']
-    },
-];
-
-
+export const _testBossTimeline: UserBossPlan['plannedAbilityUses'] = {
+    'Charged Smash': '0:27 1:12 2:40 3:26 4:53 5:39',
+    'Shadowflame Energy': '0:22 1:08 1:41 2:37 3:23 3:56 4:50 5:36 6:09',
+    'Intermission': '1:52 4:05',
+    'Searing Slam': '5:28 6:01'
+};

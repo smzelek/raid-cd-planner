@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import Planner from '../components/Planner'
+import Planner from '../components/Planner/Planner'
 
 export default function Home() {
   return (

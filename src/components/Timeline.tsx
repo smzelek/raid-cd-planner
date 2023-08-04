@@ -1,14 +1,15 @@
 import { Fragment } from 'react';
 import styles from './Planner.module.scss'
-import { CLASS_COLORS, CLASS_OFFSET_COLORS, _testTimelineEnd, cooldownsBySpec } from "./constants";
-import { RosterMember, BossTimeline, PlayerTimeline } from './types';
+import { CLASS_COLORS, CLASS_OFFSET_COLORS, _testTimelineEnd } from "./constants";
+import { RosterMember, BossTimelineData, PlayerTimelineData } from './types';
 import { timelineTimeDisplay, toSec } from "./utils";
+import DummyIcon from './DummyIcon';
 
-export default function Timeline(props: { roster: RosterMember[], bossTimeline: BossTimeline, playerTimeline: PlayerTimeline }) {
-    const { roster, bossTimeline, playerTimeline } = props;
+export default function Timeline(props: { bossTimeline: BossTimelineData, playerTimeline: PlayerTimelineData }) {
+    const { bossTimeline, playerTimeline } = props;
 
-    const maxConcurrentBossAbilities = Math.max(...bossTimeline.map(obae => obae.offset), 0) + 1;
-    const maxConcurrentPlayerAbilities = Math.max(...playerTimeline.map(obae => obae.offset), 0) + 1;
+    const maxConcurrentBossAbilities = Math.max(...bossTimeline.timeline.map(obae => obae.offset), 0) + 1;
+    const maxConcurrentPlayerAbilities = Math.max(...playerTimeline.timeline.map(obae => obae.offset), 0) + 1;
     const staticColumns = 2;
     const bossColOffset = staticColumns + 1;
     const playerColOffset = staticColumns + maxConcurrentBossAbilities + 1;
@@ -30,35 +31,28 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
     const bossAbilitiesForFrame = (time: number) => {
         return Array(maxConcurrentBossAbilities).fill(0)
             .map((_, col) => {
-                return bossTimeline.find(obae => obae.time === time && obae.offset === col)
+                return bossTimeline.timeline.find(obae => obae.time === time && obae.offset === col)
             })
             .map((bossAbility, col) => {
                 if (!bossAbility) {
                     return null;
                 }
-                if (bossAbility.spellId) {
-                    return (<div key={col}
-                        className={styles['timeline-ability']} style={{
-                            gridRowStart: time + 2,
-                            gridRowEnd: time + 2 + bossAbility.duration + 1,
-                            gridColumn: col + bossColOffset,
-                            whiteSpace: bossAbility.duration < 3 ? 'nowrap' : 'normal',
-                        }}>
-                        <a data-wh-icon-size="tiny"
-                            href={`https://www.wowhead.com/spell=${bossAbility.spellId}`}>
-                            {bossAbility.ability}
-                        </a>
-                    </div>)
-                }
-                return (<span key={col}
-                    className={styles['timeline-ability']}
-                    style={{
+                return (<div key={col}
+                    className={styles['timeline-ability']} style={{
                         gridRowStart: time + 2,
                         gridRowEnd: time + 2 + bossAbility.duration + 1,
                         gridColumn: col + bossColOffset,
+                        whiteSpace: bossAbility.duration < 3 ? 'nowrap' : 'normal',
                     }}>
+                    {bossAbility.spellId ? (
+                        <a data-wh-icon-size="small"
+                            href={`https://www.wowhead.com/spell=${bossAbility.spellId}`}>
+                        </a>
+                    ) : (
+                        <DummyIcon sizeClass='iconsmall' />
+                    )}
                     {bossAbility.ability}
-                </span>)
+                </div>)
             });
     };
 
@@ -77,7 +71,7 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
     const playerAbilitiesForFrame = (time: number) => {
         return Array(maxConcurrentPlayerAbilities).fill(0)
             .map((_, col) => {
-                return playerTimeline.find(obae => obae.time === time && obae.offset === col)
+                return playerTimeline.timeline.find(obae => obae.time === time && obae.offset === col)
             })
             .map((playerAbility, col) => {
                 if (!playerAbility) {
@@ -93,29 +87,21 @@ export default function Timeline(props: { roster: RosterMember[], bossTimeline: 
                         gridColumn: col + playerColOffset,
                         whiteSpace: playerAbility.duration < 3 ? 'nowrap' : 'normal',
                     }}>
-                    <a data-wh-icon-size="tiny"
+                    <a data-wh-icon-size="small"
                         href={`https://www.wowhead.com/spell=${playerAbility.spellId}`}>
-                        {playerAbility.name}&apos;s {playerAbility.ability}
                     </a>
+                    {playerAbility.name}&apos;s {playerAbility.ability}
                 </div>)
             });
     };
 
     const availableRaidCDsForFrame = (time: number) => {
-        if (!bossTimeline.find(obae => obae.time === time)) {
+        if (!bossTimeline.timeline.find(obae => obae.time === time)) {
             return [];
         }
 
-        const fullRosterCds = roster.map(member => {
-            const cooldowns = cooldownsBySpec(member);
-            return cooldowns.map(cd => ({
-                ...cd,
-                ...member,
-            }))
-        }).flat(1);
-
-        const available = fullRosterCds.filter(cd => {
-            const lastUse = playerTimeline.findLast(evt => evt.playerId === cd.playerId && evt.spellId === cd.spellId && evt.time <= time);
+        const available = playerTimeline.rosterCDPool.filter(cd => {
+            const lastUse = playerTimeline.timeline.findLast(evt => evt.playerId === cd.playerId && evt.spellId === cd.spellId && evt.time <= time);
             if (!lastUse) {
                 return true;
             }

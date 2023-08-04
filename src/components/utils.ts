@@ -19,7 +19,7 @@ export const toSec = (tstring: string) => {
     return Number(min) * 60 + Number(sec);
 }
 
-export const offsetEntries = (rawEvents: { time: number, duration: number, offset: number }[],) => {
+export const offsetEntries = <T extends { offset: number, time: number; duration: number; }[],>(rawEvents: T) => {
     let offsetExpirations: Record<number, number> = {};
 
     for (let i in rawEvents) {
