@@ -1,5 +1,5 @@
 export type Class = 'Warrior' | 'Paladin' | 'Hunter' | 'Rogue' | 'Priest' | 'Shaman' | 'Mage' | 'Warlock' | 'Monk' | 'Druid' | 'Demon Hunter' | 'Death Knight' | 'Evoker';
-export type Bosses = 'Rashok';
+export type Bosses = 'Rashok' | 'Magmorax';
 
 interface _SPECS extends Record<Class, string[]> {
     'Warrior': ['Arms', 'Fury', 'Protection'];

@@ -1,6 +1,6 @@
 import styles from '@/styles/Global.module.scss'
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { BOSS_ABILITIES, FLAT_COOLDOWNS, _testBossTimeline, _testTimelineEnd, cooldownsBySpec } from '@/constants';
+import { BOSS_ABILITIES, DEFAULT_BOSS_TIMELINES, FLAT_COOLDOWNS, cooldownsBySpec } from '@/constants';
 import { toSec, offsetEntries, timelineTimeDisplay } from '@/utils';
 import CheatSheet from '@/components/CheatSheet/CheatSheet';
 import RaidPlanner from '@/components/PlayerPlanner/PlayerPlanner';
@@ -13,8 +13,8 @@ export default function Planner() {
     const effectRan = useRef(false);
     const [userBossPlan, setUserBossPlan] = useState<UserBossPlan>({
         boss: 'Rashok',
-        plannedAbilityUses: _testBossTimeline,
-        rawPlannedAbilityUses: _testBossTimeline,
+        plannedAbilityUses: DEFAULT_BOSS_TIMELINES['Rashok'],
+        rawPlannedAbilityUses: DEFAULT_BOSS_TIMELINES['Rashok'],
     });
     const [userPlayerPlan, setUserPlayerPlan] = useState<UserPlayerPlan>({
         roster: [],
@@ -51,7 +51,6 @@ export default function Planner() {
                 }))
             })
             .flat(1)
-
 
         const _sortedEvents = _rawEvents.sort((a, b) => a.time - b.time);
         const _offsetEvents = offsetEntries(_sortedEvents);

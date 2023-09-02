@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import styles from '@/styles/Global.module.scss'
-import { CLASS_COLORS, CLASS_OFFSET_COLORS, _testTimelineEnd } from "@/constants";
+import { CLASS_COLORS, CLASS_OFFSET_COLORS, DEFAULT_BOSS_TIMELINE_ENDS } from "@/constants";
 import { BossTimelineData, PlayerTimelineData } from '@/types';
 import { timelineTimeDisplay, toSec } from "@/utils";
 import DummyIcon from '../DummyIcon/DummyIcon';
@@ -14,7 +14,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
     const bossColOffset = staticColumns + 1;
     const playerColOffset = staticColumns + maxConcurrentBossAbilities + 1;
 
-    const timelineEnd = toSec(_testTimelineEnd);
+    const timelineEnd = toSec(DEFAULT_BOSS_TIMELINE_ENDS[bossTimeline.boss]);
 
     const bossAbilitySpaceForFrame = (time: number) => {
         return Array(maxConcurrentBossAbilities).fill(0)
