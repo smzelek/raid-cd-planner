@@ -205,6 +205,13 @@ export const COOLDOWNS: Cooldowns = {
             duration: 8,
             spellId: 740,
         },
+        {
+            ability: 'Stampeding Roar',
+            spec: 'ALL',
+            cooldown: 120,
+            duration: 8,
+            spellId: 77761,
+        },
     ],
     'Death Knight': [
         {
