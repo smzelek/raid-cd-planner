@@ -27,7 +27,9 @@ a {
   display: inline-block;
 }
 
-::-webkit-scrollbar-corner { background: rgba(0,0,0,0.5); }
+::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.5);
+}
 
 ::-webkit-scrollbar {
   background-color: none;
@@ -36,16 +38,20 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: black;
+  background-color: rgb(30,30,30);
+  border-left: 1px solid gray;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgb(162, 162, 162);
   border-radius: 4px;
-  box-shadow: inset 0px 0px 0px 2px black;
+  border-left: 1px solid transparent;
+  box-shadow:
+    inset 0px 0px 0px 1px black, inset 0 0 10px 10px rgb(162, 162, 162);
+  margin-left: 5px;
 
   &:hover {
-    box-shadow: inset 0px 0px 0px 10px #ffffff24, inset 0px 0px 0px 2px black;
+    box-shadow:
+      inset 0px 0px 0px 1px black, inset 0px 0px 10px 10px rgb(115, 115, 115);
   }
 }
 

@@ -1,7 +1,6 @@
 import Select from "../Select/Select";
 import styles from '@/styles/Global.module.scss'
-import { CLASS_COLORS, SPECS_WITH_CDS, cooldownsBySpec } from "@/constants";
-import { Class, Cooldown, UserPlayerPlan, RaidCDErrors, } from "@/types";
+import { CLASS_COLORS, Class, Cooldown, RaidCDErrors, SPECS_WITH_CDS, UserPlayerPlan, cooldownsBySpec } from "@/constants";
 import { toSec } from "@/utils";
 import { useState } from "react";
 
@@ -28,7 +27,7 @@ export default function PlayerPlanner(props: {
             <h3 className={styles['title-bar']}>
                 Players
             </h3>
-            <div className={`${styles['scroll-wrapper']} ${styles['module-box']}`}>
+            <div className={`${styles['scroll-wrapper']} ${styles['roster-box']}`}>
                 <div style={{ marginBottom: '10px' }}>
                     <Select
                         width={'185px'}
@@ -39,10 +38,14 @@ export default function PlayerPlanner(props: {
                             const defaultName = `${s!.display}`;
                             const currentCount = playerPlan.roster.filter(r => r.name.startsWith(defaultName)).length;
                             const suffix = currentCount === 0 ? 1 : currentCount + 1;
+                            const { display, ...specProperties } = s!;
 
                             setPlayerPlan({
                                 ...playerPlan,
-                                roster: [{ ...s!, name: `${defaultName} ${suffix}`, playerId: crypto.randomUUID() }, ...playerPlan.roster]
+                                roster: [
+                                    { name: `${defaultName} ${suffix}`, playerId: crypto.randomUUID().split('-')[0], ...specProperties },
+                                    ...playerPlan.roster
+                                ]
                             })
                         }}
                         render={(s) => <div className={styles['class-text']} style={{ color: CLASS_COLORS[s.class] }}>{s.display}</div>}
@@ -66,14 +69,14 @@ export default function PlayerPlanner(props: {
                                     ...playerPlan,
                                     roster: [...playerPlan.roster.slice(0, i), ...playerPlan.roster.slice(i + 1)]
                                 });
-                            }}>remove</button>
+                            }}>X</button>
                         </div>
                         <div className={styles['cooldown-section']}>
                             {cooldownsBySpec(member).map((cd) => (
                                 <div key={cd.spellId} className={styles['cooldown-editor']}>
-                                    <a data-wh-icon-size="medium" href={`https://www.wowhead.com/spell=${cd.spellId}`}></a>
+                                    <a className={styles['cooldown-icon']} data-wh-icon-size="medium" href={`https://www.wowhead.com/spell=${cd.spellId}`}></a>
                                     <input
-                                        className={styles['timing-editor']}
+                                        className={`${styles['timing-editor']} ${styles['cooldown-timeline']}`}
                                         placeholder="0:00 4:10 ..."
                                         value={playerPlan.rawPlannedAbilityUses?.[member.playerId]?.[cd.ability] || ''}
                                         onChange={(e) => {
@@ -130,39 +133,41 @@ export default function PlayerPlanner(props: {
                                                 })
                                             }
                                         }} />
-                                    <input
-                                        className={styles['override-cd-editor']}
-                                        placeholder="set cooldown"
-                                        value={playerPlan.abilityCooldownOverrides?.[member.playerId]?.[cd.ability] || ''}
-                                        onChange={(e) => {
-                                            setPlayerPlan({
-                                                ...playerPlan,
-                                                abilityCooldownOverrides: {
-                                                    ...playerPlan.abilityCooldownOverrides,
-                                                    [member.playerId]: {
-                                                        ...playerPlan.abilityCooldownOverrides[member.playerId],
-                                                        [cd.ability]: e.target.value.trim()
+                                    <div className={styles['cooldown-overrides']}>
+                                        <input
+                                            className={styles['override-cd-editor']}
+                                            placeholder="set cooldown"
+                                            value={playerPlan.abilityCooldownOverrides?.[member.playerId]?.[cd.ability] || ''}
+                                            onChange={(e) => {
+                                                setPlayerPlan({
+                                                    ...playerPlan,
+                                                    abilityCooldownOverrides: {
+                                                        ...playerPlan.abilityCooldownOverrides,
+                                                        [member.playerId]: {
+                                                            ...playerPlan.abilityCooldownOverrides[member.playerId],
+                                                            [cd.ability]: e.target.value.trim()
+                                                        }
                                                     }
-                                                }
-                                            })
-                                        }} />
-                                    <input
-                                        className={styles['override-dur-editor']}
-                                        placeholder="set duration"
-                                        value={playerPlan.abilityDurationOverrides?.[member.playerId]?.[cd.ability] || ''}
-                                        onChange={(e) => {
-                                            setPlayerPlan({
-                                                ...playerPlan,
-                                                abilityDurationOverrides: {
-                                                    ...playerPlan.abilityDurationOverrides,
-                                                    [member.playerId]: {
-                                                        ...playerPlan.abilityDurationOverrides[member.playerId],
-                                                        [cd.ability]: e.target.value.trim()
+                                                })
+                                            }} />
+                                        <input
+                                            className={styles['override-dur-editor']}
+                                            placeholder="set duration"
+                                            value={playerPlan.abilityDurationOverrides?.[member.playerId]?.[cd.ability] || ''}
+                                            onChange={(e) => {
+                                                setPlayerPlan({
+                                                    ...playerPlan,
+                                                    abilityDurationOverrides: {
+                                                        ...playerPlan.abilityDurationOverrides,
+                                                        [member.playerId]: {
+                                                            ...playerPlan.abilityDurationOverrides[member.playerId],
+                                                            [cd.ability]: e.target.value.trim()
+                                                        }
                                                     }
-                                                }
-                                            })
-                                        }} />
-                                    <span className={styles['cooldown-error']}>{plannedAbilityUseErrors?.[member.playerId]?.[cd.ability]}</span>
+                                                })
+                                            }} />
+                                    </div>
+                                    <span className={styles['cooldown-errors']}> {plannedAbilityUseErrors?.[member.playerId]?.[cd.ability]}</span>
                                 </div>
                             ))}
                         </div>

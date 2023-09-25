@@ -7,7 +7,7 @@ export const cooldownTimeDisplay = (sec: number) => {
     return `${mins}${secs}`
 }
 
-export const timelineTimeDisplay = (sec: number) => {
+export const displaySec = (sec: number) => {
     const _mins = String(Math.floor(sec / 60)).padStart(2, '0');
     const _secs = String(sec % 60).padStart(2, '0');
 

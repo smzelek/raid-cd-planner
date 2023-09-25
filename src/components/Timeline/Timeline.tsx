@@ -1,20 +1,22 @@
 import { Fragment } from 'react';
 import styles from '@/styles/Global.module.scss'
-import { CLASS_COLORS, CLASS_OFFSET_COLORS, DEFAULT_BOSS_TIMELINE_ENDS } from "@/constants";
-import { BossTimelineData, PlayerTimelineData } from '@/types';
-import { timelineTimeDisplay, toSec } from "@/utils";
-import DummyIcon from '../DummyIcon/DummyIcon';
+import { BossTimelineData, CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Cooldown, PlayerTimelineData } from "@/constants";
+import { displaySec, toSec } from "@/utils";
 
 export default function Timeline(props: { bossTimeline: BossTimelineData, playerTimeline: PlayerTimelineData }) {
     const { bossTimeline, playerTimeline } = props;
-
+    console.log(bossTimeline)
     const maxConcurrentBossAbilities = Math.max(...bossTimeline.timeline.map(obae => obae.offset), 0) + 1;
     const maxConcurrentPlayerAbilities = Math.max(...playerTimeline.timeline.map(obae => obae.offset), 0) + 1;
-    const staticColumns = 2;
-    const bossColOffset = staticColumns + 1;
-    const playerColOffset = staticColumns + maxConcurrentBossAbilities + 1;
+    const bossColOffset = 2;
+    const playerColOffset = maxConcurrentBossAbilities + 2;
+    const availableColOffset = playerColOffset + maxConcurrentPlayerAbilities + 1;
 
-    const timelineEnd = toSec(DEFAULT_BOSS_TIMELINE_ENDS[bossTimeline.boss]);
+    const timelineEnd = Math.max(
+        bossTimeline.timeline[bossTimeline.timeline.length - 1]?.time ?? 0,
+        bossTimeline.events[bossTimeline.events.length - 1]?.time ?? 0,
+        playerTimeline.timeline[playerTimeline.timeline.length - 1]?.time ?? 0,
+    )
 
     const bossAbilitySpaceForFrame = (time: number) => {
         return Array(maxConcurrentBossAbilities).fill(0)
@@ -44,13 +46,9 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                         gridColumn: col + bossColOffset,
                         whiteSpace: bossAbility.duration < 3 ? 'nowrap' : 'normal',
                     }}>
-                    {bossAbility.spellId ? (
-                        <a data-wh-icon-size="small"
-                            href={`https://www.wowhead.com/spell=${bossAbility.spellId}`}>
-                        </a>
-                    ) : (
-                        <DummyIcon sizeClass='iconsmall' />
-                    )}
+                    <a data-wh-icon-size="small"
+                        href={`https://www.wowhead.com/spell=${bossAbility.spellId}`}>
+                    </a>
                     {bossAbility.ability}
                 </div>)
             });
@@ -100,13 +98,23 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
             return [];
         }
 
-        const available = playerTimeline.rosterCDPool.filter(cd => {
-            const lastUse = playerTimeline.timeline.findLast(evt => evt.playerId === cd.playerId && evt.spellId === cd.spellId && evt.time <= time);
-            if (!lastUse) {
+        const isOffCD = (pcd: PlayerTimelineData['rosterCDPool'][number]) => {
+            const mostRecentUse = playerTimeline.timeline.findLast((evt) => (evt.playerId === pcd.playerId) && (evt.spellId === pcd.spellId) && (evt.time <= time));
+            if (!mostRecentUse) {
                 return true;
             }
-            return lastUse.time + cd.cooldown <= time;
-        })
+            return mostRecentUse.time + pcd.cooldown <= time;
+        };
+
+        const wontPreventPlannedCD = (pcd: PlayerTimelineData['rosterCDPool'][number]) => {
+            const nextPlannedUse = playerTimeline.timeline.find((evt) => (evt.playerId === pcd.playerId) && (evt.spellId === pcd.spellId) && evt.time > time);
+            if (!nextPlannedUse) {
+                return true;
+            }
+            return time + pcd.cooldown <= nextPlannedUse.time;
+        }
+
+        const available = playerTimeline.rosterCDPool.filter(cd => isOffCD(cd) && wontPreventPlannedCD(cd));
 
         const icons = (available.map((cd, i) => (
             <a key={`${time}-${cd.spellId}-${i}`} data-wh-icon-size="small"
@@ -118,19 +126,35 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
             style={{
                 gridRowStart: time + 2,
                 gridRowEnd: time + 2,
-                gridColumn: 2
+                gridColumn: availableColOffset
             }}>
             {icons}
         </div>)
     };
 
+    const eventsForFrame = (time: number) => {
+        const event = bossTimeline.events.find(e => e.time === time);
+
+        if (!event) {
+            return null;
+        }
+        return (<div
+            className={styles['timeline-event']} style={{
+                gridRowStart: time + 2,
+                gridRowEnd: time + 3,
+                gridColumnStart: 1,
+                gridColumnEnd: availableColOffset + 1,
+            }}>
+            {event.name}
+        </div>)
+    };
 
     return (
         <div className={`${styles['flex-scroll-wrapper']} ${styles['timeline']}`}>
             <h3 className={styles['title-bar']}>Timeline</h3>
-            <div className={`${styles['scroll-wrapper']} ${styles['module-box']} ${styles['timeline-grid']}`}
+            <div className={`${styles['scroll-wrapper']} ${styles['timeline-grid']}`}
                 style={{
-                    gridTemplateColumns: `min-content min-content repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities}, minmax(100px, min-content)) min-content auto`
+                    gridTemplateColumns: `min-content repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities}, minmax(100px, min-content)) auto min-content`
                 }}>
                 <div className={styles['timeline-header']}
                     style={{
@@ -142,18 +166,10 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                 <div className={styles['timeline-header']}
                     style={{
                         gridRow: 1,
-                        gridColumnStart: 2,
-                        gridColumnEnd: 2,
-                    }}>
-                    Available
-                </div>
-                <div className={styles['timeline-header']}
-                    style={{
-                        gridRow: 1,
                         gridColumnStart: bossColOffset,
                         gridColumnEnd: bossColOffset + maxConcurrentBossAbilities,
                     }}>
-                    Boss Abilities
+                    {bossTimeline.boss}'s Abilities
                 </div>
                 <div className={styles['timeline-header']}
                     style={{
@@ -163,6 +179,14 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                     }}>
                     Raid CDs
                 </div>
+                <div className={styles['timeline-header']}
+                    style={{
+                        gridRow: 1,
+                        gridColumnStart: availableColOffset,
+                        gridColumnEnd: availableColOffset,
+                    }}>
+                    Available
+                </div>
                 {Array(timelineEnd + 1).fill(0).map((_, s) => (<Fragment key={s}>
                     <div className={styles['timeline-grid-cell']}
                         style={{
@@ -170,13 +194,14 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                             gridRowEnd: s + 2,
                             gridColumn: 1
                         }}>
-                        {s % 5 === 0 && timelineTimeDisplay(s)}
+                        {s % 5 === 0 && displaySec(s)}
                     </div>
-                    {availableRaidCDsForFrame(s)}
+                    {eventsForFrame(s)}
                     {bossAbilitySpaceForFrame(s)}
                     {bossAbilitiesForFrame(s)}
                     {playerAbilitySpaceForFrame(s)}
                     {playerAbilitiesForFrame(s)}
+                    {availableRaidCDsForFrame(s)}
                     {(s % 5 === 0 ? (
                         <div className={styles['timeline-major-ticks']}
                             style={{

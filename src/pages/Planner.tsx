@@ -1,20 +1,21 @@
 import styles from '@/styles/Global.module.scss'
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { BOSS_ABILITIES, DEFAULT_BOSS_TIMELINES, FLAT_COOLDOWNS, cooldownsBySpec } from '@/constants';
-import { toSec, offsetEntries, timelineTimeDisplay } from '@/utils';
+import {
+    BOSS_ABILITIES, BOSS_PHASES, FLAT_COOLDOWNS, cooldownsBySpec,
+    BossTimelineData, PlayerTimelineData, UserPlayerPlan, BossPlan, SavedProfile, PlayerId, Cooldown, Class
+} from '@/constants';
+import { toSec, offsetEntries, displaySec } from '@/utils';
 import CheatSheet from '@/components/CheatSheet/CheatSheet';
 import RaidPlanner from '@/components/PlayerPlanner/PlayerPlanner';
 import Timeline from '@/components/Timeline/Timeline';
-import { BossTimelineData, PlayerTimelineData, UserPlayerPlan, UserBossPlan, SavedProfile, PlayerId, Cooldown, Class } from '@/types';
 import BossPlanner from '@/components/BossPlanner/BossPlanner';
 import CopyButton from '@/components/CopyButton/CopyButton';
 
 export default function Planner() {
     const effectRan = useRef(false);
-    const [userBossPlan, setUserBossPlan] = useState<UserBossPlan>({
-        boss: 'Rashok',
-        plannedAbilityUses: DEFAULT_BOSS_TIMELINES['Rashok'],
-        rawPlannedAbilityUses: DEFAULT_BOSS_TIMELINES['Rashok'],
+    const [userBossPlan, setUserBossPlan] = useState<BossPlan>({
+        boss: 'Echo of Neltharion',
+        timeline: BOSS_PHASES['Echo of Neltharion'],
     });
     const [userPlayerPlan, setUserPlayerPlan] = useState<UserPlayerPlan>({
         roster: [],
@@ -41,22 +42,40 @@ export default function Planner() {
     }, [])
 
     const bossTimelineData: BossTimelineData = useMemo(() => {
-        const _rawEvents = Object.entries(userBossPlan.plannedAbilityUses)
-            .map(([ability, _times]) => {
-                const times = _times ? _times.trim().split(' ') : []
-                return times.map(at => ({
-                    ...BOSS_ABILITIES[userBossPlan.boss].find(_ta => _ta.ability === ability)!,
-                    time: toSec(at),
-                    offset: 0,
-                }))
-            })
-            .flat(1)
+        const phaseArray = Object.values(userBossPlan.timeline.phases);
+        const _rawBossAbilities = phaseArray
+            .map((phase, phaseNum) => {
+                const phaseStart = toSec(phase.start);
+                const nextPhaseStart = phaseArray[phaseNum + 1]?.start;
+                const phaseEnd = nextPhaseStart ? toSec(nextPhaseStart) : Infinity;
 
-        const _sortedEvents = _rawEvents.sort((a, b) => a.time - b.time);
-        const _offsetEvents = offsetEntries(_sortedEvents);
+                const abilities = Object.entries(phase.abilities).map(([abilityName, _times]) => {
+                    const times = _times.trim().split(' ').filter(t => !!t).map(t => toSec(t) + phaseStart).filter(t => t < phaseEnd)
+                    const ability = BOSS_ABILITIES[userBossPlan.boss].find(_ta => _ta.ability === abilityName)!;
+                    return times.map((at, i) => ({
+                        ...ability,
+                        ability: `${ability.ability} ${i + 1}`,
+                        time: at,
+                        offset: 0,
+                    }))
+                });
+
+                return abilities.flat(1);
+            })
+            .flat(1);
+
+        const _bossEvents = [
+            ...(Object.keys(userBossPlan.timeline.phases).length > 1 ?
+                Object.entries(userBossPlan.timeline.phases).map(([phaseName, phase]) => ({ name: phaseName, time: toSec(phase.start) })) : []),
+            ...(userBossPlan.timeline.enrage ? [{ name: 'Enrage', time: toSec(userBossPlan.timeline.enrage) }] : [])
+        ]
+
+        const _sortedAbilityEvents = _rawBossAbilities.sort((a, b) => a.time - b.time);
+        const _offsetAbilityEvents = offsetEntries(_sortedAbilityEvents);
         return {
             boss: userBossPlan.boss,
-            timeline: _offsetEvents
+            timeline: _offsetAbilityEvents,
+            events: _bossEvents,
         };
     }, [userBossPlan])
 
@@ -89,7 +108,7 @@ export default function Planner() {
                 };
             }))).flat(1);
 
-        const _rawEvents = _raidTimeline
+        const _rawAbilityEvents = _raidTimeline
             .map(evt => evt.times.map(at => {
                 const ability = FLAT_COOLDOWNS.find(cd => cd.ability === evt.ability)!;
                 const player = userPlayerPlan.roster.find(member => member.playerId === evt.playerId);
@@ -110,21 +129,44 @@ export default function Planner() {
             .flat(1)
             .filter(e => !!e) as PlayerTimelineData['timeline'];
 
-        const _sortedEvents = _rawEvents.sort((a, b) => (a.time + a.offset) - (b.time + b.offset));
-        const _offsetEvents = offsetEntries(_sortedEvents) as PlayerTimelineData['timeline'];
+        const _sortedAbilityEvents = _rawAbilityEvents.sort((a, b) => (a.time + a.offset) - (b.time + b.offset));
+        const _offsetAbilityEvents = offsetEntries(_sortedAbilityEvents) as PlayerTimelineData['timeline'];
 
         return {
             roster: userPlayerPlan.roster,
             rosterCDPool: rosterCDPool,
-            timeline: _offsetEvents,
+            timeline: _offsetAbilityEvents,
             abilityCooldownOverrides: userPlayerPlan.abilityCooldownOverrides,
             abilityDurationOverrides: userPlayerPlan.abilityDurationOverrides,
         };
     }, [userPlayerPlan]);
 
 
+    const buildNote = () => {
+        const phases = Object.entries(userBossPlan.timeline.phases);
+        if (phases.length === 1) {
+            return playerTimelineData.timeline.map(evt => `{time:${displaySec(evt.time)}} ${evt.name}'s ${evt.ability}`).join('\n')
+        }
+
+        return phases.map(([phaseName, phase], phaseNum) => {
+            const phaseStart = toSec(phase.start);
+            const nextPhaseStart = phases[phaseNum + 1]?.[1]?.start;
+            const phaseEnd = nextPhaseStart ? toSec(nextPhaseStart) : Infinity;
+            return [
+                `-- ${phaseName}`,
+                ...playerTimelineData.timeline
+                    .filter(evt => phaseStart <= evt.time && evt.time <= phaseEnd)
+                    .map(evt => ({
+                        ...evt,
+                        time: evt.time - phaseStart
+                    }))
+                    .map(evt => `{time:${displaySec(evt.time)}${phaseNum > 0 ? `,p${phaseNum + 1}` : ''}} ${evt.name}'s ${evt.ability}`)
+            ]
+        }).flat(1).join('\n');
+    }
+
     const exportNote = () => {
-        const note = playerTimelineData.timeline.map(evt => `{time:${timelineTimeDisplay(evt.time)}} ${evt.name} ${evt.ability}`).join('\n')
+        const note = buildNote();
         navigator.clipboard.writeText(note);
     }
 
@@ -138,12 +180,11 @@ export default function Planner() {
             },
             userBossPlan: {
                 boss: userBossPlan.boss,
-                plannedAbilityUses: userBossPlan.plannedAbilityUses
+                timeline: userBossPlan.timeline
             },
-        }
+        };
         const encoded = btoa(JSON.stringify(saveObj))
         navigator.clipboard.writeText(encoded);
-
     }
 
     const importFromSavedString = () => {
@@ -154,7 +195,6 @@ export default function Planner() {
         const saveObj: SavedProfile = JSON.parse(atob(saveStr));
         setUserBossPlan({
             ...saveObj.userBossPlan,
-            rawPlannedAbilityUses: saveObj.userBossPlan.plannedAbilityUses
         });
         setUserPlayerPlan({
             ...saveObj.userPlayerPlan,
@@ -168,9 +208,9 @@ export default function Planner() {
                 <h1 className={styles['app-title-bar']}>
                     Raid CD Planner
                     <div className={styles['app-title-actions']}>
-                        <CopyButton onClick={exportNote}>Export to ERT</CopyButton>
-                        <CopyButton onClick={exportToSavedString}>Export to Saved Profile</CopyButton>
-                        <button onClick={importFromSavedString}>Import from Saved Profile</button>
+                        <CopyButton onClick={exportNote}>Export to RT Note</CopyButton>
+                        <CopyButton onClick={exportToSavedString}>Export to Profile String</CopyButton>
+                        <button onClick={importFromSavedString}>Import from Profile String</button>
                     </div>
                 </h1>
             </header>

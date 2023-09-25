@@ -1,9 +1,82 @@
-import { Class, SpecChoices, SpecMatchesClass, Cooldown, Cooldowns, BossAbility, UserBossPlan, Bosses, BossAbilities } from "./types";
+export type Class = 'Warrior' | 'Paladin' | 'Hunter' | 'Rogue' | 'Priest' | 'Shaman' | 'Mage' | 'Warlock' | 'Monk' | 'Druid' | 'Demon Hunter' | 'Death Knight' | 'Evoker';
+export type Bosses = 'Rashok' | 'Magmorax' | 'Echo of Neltharion';
 
-export const BOSSES: Bosses[] = ['Rashok', 'Magmorax'];
+interface _SPECS extends Record<Class, string[]> {
+    'Warrior': ['Arms', 'Fury', 'Protection'];
+    'Paladin': ['Holy', 'Protection', 'Retribution'];
+    'Hunter': ['Beast Mastery', 'Marksmanship', 'Survival'];
+    'Rogue': ['Assassination', 'Outlaw', 'Subtlety'];
+    'Priest': ['Discipline', 'Holy', 'Shadow'];
+    'Shaman': ['Elemental', 'Enhancement', 'Restoration'];
+    'Mage': ['Arcane', 'Fire', 'Frost'];
+    'Warlock': ['Affliction', 'Demonology', 'Destruction'];
+    'Monk': ['Brewmaster', 'Mistweaver', 'Windwalker'];
+    'Druid': ['Balance', 'Feral', 'Guardian', 'Restoration'];
+    'Demon Hunter': ['Havoc', 'Vengeance'];
+    'Death Knight': ['Blood', 'Frost', 'Unholy'];
+    'Evoker': ['Devastation', 'Preservation', 'Augmentation'];
+}
 
-export const BOSS_ABILITIES: BossAbilities = {
+type SpecOf<C extends Class> = _SPECS[C][number] | 'ALL'
+
+export type Cooldown<T extends Class> = {
+    ability: string;
+    spec: SpecOf<T>;
+    cooldown: number;
+    duration: number;
+    spellId: number;
+};
+
+export type Cooldowns = {
+    [T in Class]: Cooldown<T>[];
+};
+
+export type BossAbilities = Record<Bosses, readonly BossAbility[]>;
+
+type SpecClassMapper<T extends Class> = T extends Class ? { [key in T]: { spec: SpecOf<T> } }[T] & { class: T } : never;
+export type SpecMatchesClass = SpecClassMapper<Class>;
+export type SpecChoices = SpecMatchesClass & {
+    display: string;
+};
+export type RosterMember = SpecMatchesClass & {
+    name: string;
+    playerId: string;
+};
+export type BossAbility = {
+    ability: string;
+    spellId: number;
+    duration: number;
+};
+
+export const BOSSES: Bosses[] = ['Rashok', 'Magmorax', 'Echo of Neltharion'];
+
+const LITERAL_BOSS_ABILITIES = {
     'Rashok': [
+        {
+            ability: 'Charged Smash',
+            spellId: 400777,
+            duration: 0,
+        },
+        {
+            ability: 'Conduit Flare',
+            spellId: 405828,
+            duration: 5,
+        },
+        {
+            ability: 'Overcharged',
+            spellId: 405827,
+            duration: 5,
+        },
+        {
+            ability: 'Scorched Flesh',
+            spellId: 408204,
+            duration: 0,
+        },
+        {
+            ability: 'Scorching Heatwave',
+            spellId: 404445,
+            duration: 19,
+        },
         {
             ability: 'Searing Slam',
             spellId: 405821,
@@ -15,28 +88,8 @@ export const BOSS_ABILITIES: BossAbilities = {
             duration: 5,
         },
         {
-            ability: 'Charged Smash',
-            spellId: 400777,
-            duration: 0,
-        },
-        {
-            ability: 'Overcharged',
-            spellId: 405827,
-            duration: 5,
-        },
-        {
-            ability: 'Conduit Flare',
-            spellId: 405828,
-            duration: 5,
-        },
-        {
-            ability: 'Scorching Heatwave',
-            spellId: 404445,
-            duration: 0,
-        },
-        {
-            ability: 'Scorched Flesh',
-            spellId: 408204,
+            ability: 'Shattered Conduit',
+            spellId: 410690,
             duration: 0,
         },
         {
@@ -44,32 +97,12 @@ export const BOSS_ABILITIES: BossAbilities = {
             spellId: 406165,
             duration: 0,
         },
-        {
-            ability: 'Shattered Conduit',
-            spellId: 410690,
-            duration: 0,
-        },
-        {
-            ability: 'Intermission',
-            spellId: null,
-            duration: 19
-        }
     ],
     'Magmorax': [
-        {
-            ability: 'Molten Spittle',
-            spellId: 402989,
-            duration: 6,
-        },
         {
             ability: 'Explosive Magma',
             spellId: 411182,
             duration: 6,
-        },
-        {
-            ability: 'Soak Magma Puddle',
-            spellId: 403103,
-            duration: 3,
         },
         {
             ability: 'Igniting Roar',
@@ -82,35 +115,151 @@ export const BOSS_ABILITIES: BossAbilities = {
             duration: 2,
         },
         {
+            ability: 'Molten Spittle',
+            spellId: 402989,
+            duration: 6,
+        },
+        {
             ability: 'Overpowering Stomp',
             spellId: 403671,
             duration: 1,
         },
-    ]
-};
+        {
+            ability: 'Soak Magma Puddle',
+            spellId: 403103,
+            duration: 3,
+        },
+    ],
+    'Echo of Neltharion': [
+        {
+            ability: 'Calamitous Strike',
+            spellId: 401022,
+            duration: 0,
+        },
+        {
+            ability: 'Ebon Destruction',
+            spellId: 407917,
+            duration: 0,
+        },
+        {
+            ability: 'Echoing Fissure',
+            spellId: 402115,
+            duration: 0,
+        },
+        {
+            ability: 'Rushing Darkness',
+            spellId: 407221,
+            duration: 0,
+        },
+        {
+            ability: 'Shadow Strike',
+            spellId: 407856,
+            duration: 0,
+        },
+        {
+            ability: 'Shatter',
+            spellId: 401825,
+            duration: 15,
+        },
+        {
+            ability: 'Surrender to Corruption',
+            spellId: 403057,
+            duration: 10,
+        },
+        {
+            ability: 'Umbral Annihilation',
+            spellId: 404068,
+            duration: 0,
+        },
+        {
+            ability: 'Volcanic Heart',
+            spellId: 410953,
+            duration: 7,
+        },
+    ],
+} as const;
+// Use `as const` to extract literal types from the object; use the following rule to constrain the type of the object.
+const _ensure_boss_abilities_structure: Record<Bosses, readonly BossAbility[]> = LITERAL_BOSS_ABILITIES;
+export const BOSS_ABILITIES = _ensure_boss_abilities_structure;
 
-export const DEFAULT_BOSS_TIMELINES: Record<Bosses, Record<string, string>> = {
+
+export type BossPhases = {
+    [T in Bosses]: {
+        enrage: string | null;
+        phases: {
+            [phase: string]: {
+                start: string;
+                abilities: Partial<{ [ability in typeof LITERAL_BOSS_ABILITIES[T][number]['ability']]: string }>
+            };
+        }
+    }
+}
+export const BOSS_PHASES: BossPhases = {
     'Rashok': {
-        'Charged Smash': '0:27 1:12 2:40 3:26 4:53 5:39',
-        'Shadowflame Energy': '0:22 1:08 1:41 2:37 3:23 3:56 4:50 5:36 6:09',
-        'Intermission': '1:52 4:05',
-        'Searing Slam': '5:28 6:01'
+        enrage: '6:20',
+        phases: {
+            'ALL': {
+                start: '0:00',
+                abilities: {
+                    'Charged Smash': '0:27 1:12 2:40 3:26 4:53 5:39',
+                    'Shadowflame Energy': '0:22 1:08 1:41 2:37 3:23 3:56 4:50 5:36 6:09',
+                    'Scorching Heatwave': '1:52 4:05',
+                    'Searing Slam': '5:28 6:01',
+                }
+            },
+        }
     },
     'Magmorax': {
-        'Molten Spittle': '0:15 0:55 1:22 2:02 2:29 3:09 3:35 4:15 4:42 5:22',
-        'Explosive Magma': '0:15 0:55 1:22 2:02 2:29 3:09 3:35 4:15 4:42 5:22',
-        'Soak Magma Puddle': '0:21 1:01 1:28 2:08 2:35 3:15 3:41 4:21 4:48 5:28',
-        'Igniting Roar': '0:08 0:49 1:14 1:56 2:21 3:03 3:28 4:09 4:34 5:16',
-        'Lava Ejection': '0:13 0:54 1:19 2:01 2:26 3:08 3:33 4:14 4:39 5:21',
-        'Overpowering Stomp': '0:47 1:54 3:00 4:07 5:14',
+        enrage: '5:30',
+        phases: {
+            'ALL': {
+                start: '0:00',
+                abilities: {
+                    'Molten Spittle': '0:15 0:55 1:22 2:02 2:29 3:09 3:35 4:15 4:42 5:22',
+                    'Explosive Magma': '0:15 0:55 1:22 2:02 2:29 3:09 3:35 4:15 4:42 5:22',
+                    'Soak Magma Puddle': '0:21 1:01 1:28 2:08 2:35 3:15 3:41 4:21 4:48 5:28',
+                    'Igniting Roar': '0:08 0:49 1:14 1:56 2:21 3:03 3:28 4:09 4:34 5:16',
+                    'Lava Ejection': '0:13 0:54 1:19 2:01 2:26 3:08 3:33 4:14 4:39 5:21',
+                    'Overpowering Stomp': '0:47 1:54 3:00 4:07 5:14',
+                }
+            }
+        }
     },
+    'Echo of Neltharion': {
+        enrage: null,
+        phases: {
+            'P1: The Earth Warder': {
+                start: '0:00',
+                abilities: {
+                    'Calamitous Strike': '0:27 1:03 1:40 2:17',
+                    'Echoing Fissure': '0:39 1:15 1:52 2:29',
+                    'Rushing Darkness': '0:15 0:52 1:29 2:06 2:43',
+                    'Shatter': '0:15 0:27 0:52 1:03 1:29 1:40 2:06',
+                    'Volcanic Heart': '0:15 0:52 1:29 2:06',
+                }
+            },
+            'P2: Corruption Takes Hold': {
+                start: '2:46',
+                abilities: {
+                    'Rushing Darkness': '0:40 1:10 1:40 2:10',
+                    'Shadow Strike': '0:25 0:55 1:25 1:55 2:25',
+                    'Shatter': '0:55 1:25 1:55',
+                    'Surrender to Corruption': '0:15',
+                    'Umbral Annihilation': '0:33 1:03 1:33 2:03 2:33',
+                    'Volcanic Heart': '0:26 0:42 0:59 1:16 1:33 2:09 2:24',
+                }
+            },
+            'P3: Reality Fractures': {
+                start: '5:04',
+                abilities: {
+                    'Calamitous Strike': '0:38 1:08 1:38 2:07',
+                    'Ebon Destruction': '0:48 1:18 1:48 2:18',
+                    'Rushing Darkness': '0:32 1:02 1:32 2:02',
+                }
+            },
+        },
+    }
 };
-
-export const DEFAULT_BOSS_TIMELINE_ENDS: Record<Bosses, string> = {
-    'Rashok': '6:20',
-    'Magmorax': '5:30',
-};
-
 
 export const COOLDOWNS: Cooldowns = {
     'Hunter': [],
@@ -164,6 +313,13 @@ export const COOLDOWNS: Cooldowns = {
             duration: 0,
             spellId: 265202,
         },
+        {
+            ability: 'Symbol of Hope',
+            spec: 'Holy',
+            cooldown: 180,
+            duration: 4,
+            spellId: 64901,
+        }
     ],
     'Shaman': [
         {
@@ -187,6 +343,13 @@ export const COOLDOWNS: Cooldowns = {
             duration: 15,
             spellId: 114052,
         },
+        {
+            ability: 'Ancestral Guidance',
+            spec: 'Restoration',
+            cooldown: 120,
+            duration: 10,
+            spellId: 108281,
+        }
     ],
     'Monk': [
         {
@@ -204,6 +367,13 @@ export const COOLDOWNS: Cooldowns = {
             cooldown: 180,
             duration: 8,
             spellId: 740,
+        },
+        {
+            ability: 'Nature\'s Vigil',
+            spec: 'Restoration',
+            cooldown: 90,
+            duration: 15,
+            spellId: 124974,
         },
         {
             ability: 'Stampeding Roar',
@@ -303,3 +473,65 @@ export const cooldownsBySpec = (s: SpecMatchesClass) => {
     return (COOLDOWNS[s.class] as Cooldown<Class>[]).filter((cd) => cd.spec === "ALL" || cd.spec === s.spec)
 }
 
+export type PhasedAbilities = Record<string, {
+    start: string;
+    abilities: Record<AbilityName, string>;
+}>;
+export type BossPlan = {
+    boss: Bosses;
+    timeline: {
+        enrage: string | null;
+        phases: PhasedAbilities;
+    };
+};
+export type BossTimelineData = {
+    boss: Bosses;
+    timeline: {
+        ability: string;
+        spellId: number | null;
+        duration: number;
+        time: number;
+        offset: number;
+    }[];
+    events: {
+        name: string;
+        time: number;
+    }[];
+};
+
+export type UserPlayerPlan = {
+    roster: RosterMember[];
+    rawPlannedAbilityUses: PlannedPlayerAbilityUses;
+    plannedAbilityUses: PlannedPlayerAbilityUses;
+    abilityCooldownOverrides: AbilityCooldownOverrides;
+    abilityDurationOverrides: AbilityDurationOverrides;
+};
+export type PlayerTimelineData = {
+    rosterCDPool: ({ playerId: PlayerId; } & Cooldown<Class>)[];
+    abilityCooldownOverrides: AbilityCooldownOverrides;
+    abilityDurationOverrides: AbilityDurationOverrides;
+    timeline: {
+        ability: string;
+        cooldown: number;
+        playerId: string;
+        name: string;
+        class: Class;
+        spellId: number;
+        duration: number;
+        time: number;
+        offset: number;
+    }[];
+};
+
+export type PlayerId = string;
+export type AbilityName = string;
+export type AbilityUses = Record<AbilityName, string>;
+export type PlannedPlayerAbilityUses = Record<PlayerId, AbilityUses>;
+export type AbilityCooldownOverrides = Record<PlayerId, Record<AbilityName, string>>;
+export type AbilityDurationOverrides = Record<PlayerId, Record<AbilityName, string>>;
+export type RaidCDErrors = Record<PlayerId, Record<AbilityName, string>>;
+
+export type SavedProfile = {
+    userPlayerPlan: Omit<UserPlayerPlan, 'rawPlannedAbilityUses'>
+    userBossPlan: Omit<BossPlan, 'rawPlannedAbilityUses'>;
+}

@@ -24,52 +24,79 @@
 }
 
 .builder {
-  flex-grow: 1;
-  display: grid;
-  grid-template-rows: 70fr 30fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  max-width: 600px;
 }
 
 .boss {
+  .boss-select {
+    padding: 10px;
+  }
+
+  .boss-enrage {
+    padding: 0 10px;
+  }
+
+  .phase-wrapper {
+    padding: 10px;
+    padding-bottom: 20px;
+  }
+
+  .phase-header {
+    border-bottom: 1px solid white;
+    padding: 10px;
+    background: #202020;
+    border-top: 1px solid white;
+    font-weight: normal;
+    font-size: 14px;
+  }
+
   .boss-ability-editor {
-    display: grid;
-    grid-template-areas:
-      "a b"
-      "a c";
-    margin-left: 5px;
-    margin-top: 15px;
+    .ability-label {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
 
-    .ability-icon {
-      grid-area: a;
-    }
-
-    .ability-name {
-      grid-area: b;
-    }
-
-    .timing-editor {
-      grid-area: c;
-    }
-
-    .timing-editor {
-      width: 200px;
-      height: 26px;
-      margin-left: 3px;
-      border-radius: 6px;
-      padding-left: 8px;
-      border: 1px solid #646464;
-      background-color: rgb(15, 15, 15);
-
-      &:focus-within {
-        border: 1px solid #1b6dff;
-        outline: 1px solid #1b6dff;
+      .ability-name {
+        margin-left: 3px;
       }
     }
+  }
+
+  .boss-ability-editor+.boss-ability-editor {
+    margin-top: 15px;
+  }
+}
+
+.timing-editor {
+  width: 200px;
+  height: 26px;
+  margin-left: 3px;
+  border-radius: 6px;
+  padding-left: 8px;
+  border: 1px solid #646464;
+  background-color: rgb(15, 15, 15);
+
+  &:focus-within {
+    border: 1px solid #1b6dff;
+    outline: 1px solid #1b6dff;
+  }
+
+  &.short {
+    width: 44px;
   }
 }
 
 .roster {
+  flex-grow: 1;
+  min-height: 400px;
+
+  .roster-box {
+    padding: 10px;
+    padding-bottom: 40px;
+  }
+
   .roster-member {
     margin-top: 20px;
   }
@@ -79,9 +106,34 @@
   }
 
   .cooldown-editor {
-    display: flex;
-    align-items: center;
-    margin-left: 5px;
+    display: grid;
+    grid-template-areas:
+      "a b"
+      "e c"
+      "e d";
+    grid-template-columns: min-content;
+
+    margin-bottom: 10px;
+
+    .cooldown-icon {
+      grid-area: a;
+    }
+
+    .cooldown-timeline {
+      grid-area: b;
+    }
+
+    .cooldown-overrides {
+      grid-area: c;
+    }
+
+    .cooldown-errors {
+      grid-area: d;
+      color: rgb(206, 81, 81);
+      font-style: italic;
+      font-size: 12px;
+      margin-left: 3px;
+    }
 
     a>span {
       height: 28px;
@@ -99,21 +151,6 @@
         width: 30px;
         top: -1px;
         background-size: contain;
-      }
-    }
-
-    .timing-editor {
-      width: 200px;
-      height: 26px;
-      margin-left: 3px;
-      border-radius: 6px;
-      padding-left: 8px;
-      border: 1px solid #646464;
-      background-color: rgb(15, 15, 15);
-
-      &:focus-within {
-        border: 1px solid #1b6dff;
-        outline: 1px solid #1b6dff;
       }
     }
 
@@ -139,12 +176,31 @@
   }
 }
 
-.cheat-sheets {
-  display: flex;
-  gap: 20px;
+.cheat-sheet {
+  flex-shrink: 1;
+  min-height: 0;
 
-  a {
-    display: inline-block;
+  .title-bar {
+    cursor: pointer;
+  }
+
+  .cheat-sheet-box {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    font-size: 14px;
+
+    h4 {
+      font-size: 15px;
+    }
+
+    .class-row:last-child {
+      padding-bottom: 30px;
+    }
+
+    a {
+      display: inline-block;
+    }
   }
 }
 
@@ -172,11 +228,6 @@
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
-}
-
-.module-box {
-  padding: 10px;
-  padding-bottom: 40px;
 }
 
 .timeline {
@@ -218,6 +269,7 @@
 .timeline-grid {
   display: grid;
   grid-auto-rows: 15px;
+  padding: 10px;
 
   .timeline-header {
     font-size: 14px;
@@ -231,10 +283,17 @@
     grid-template-columns: repeat(5, 1fr);
     grid-auto-rows: 26px;
     margin-top: -3px;
+  }
 
-    a {
-      margin-right: -4px;
-    }
+  .timeline-event {
+    background: #2c2c2c4f;
+    padding: 1px;
+    height: 25px;
+    border: 1px solid white;
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    margin-top: 9px;
   }
 
   .timeline-ability {
@@ -294,7 +353,7 @@
 }
 
 .scroll-wrapper {
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 100%;
   overflow-x: auto;
 }
@@ -302,7 +361,6 @@
 .flex-scroll-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 0px;
   border: 1px solid gray;
   border-radius: 4px;
 }
