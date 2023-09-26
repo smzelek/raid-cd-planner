@@ -20,7 +20,6 @@ export default function CheatSheet(props: { roster: RosterMember[] }) {
         <div className={`${styles['flex-scroll-wrapper']} ${styles['cheat-sheet']}`}>
             <h3 onClick={() => {
                 setCollapsed(!collapsed);
-
             }} className={styles['title-bar']}>Raid CD Cheat Sheet {collapsed ? '▲' : '▼'}</h3>
             {!collapsed && (<div className={`${styles['scroll-wrapper']} ${styles['cheat-sheet-box']}`}>
                 {missingSpecs.length > 0 ? (<div>

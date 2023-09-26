@@ -5,7 +5,6 @@ import { displaySec, toSec } from "@/utils";
 
 export default function Timeline(props: { bossTimeline: BossTimelineData, playerTimeline: PlayerTimelineData }) {
     const { bossTimeline, playerTimeline } = props;
-    console.log(bossTimeline)
     const maxConcurrentBossAbilities = Math.max(...bossTimeline.timeline.map(obae => obae.offset), 0) + 1;
     const maxConcurrentPlayerAbilities = Math.max(...playerTimeline.timeline.map(obae => obae.offset), 0) + 1;
     const bossColOffset = 2;
@@ -169,7 +168,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                         gridColumnStart: bossColOffset,
                         gridColumnEnd: bossColOffset + maxConcurrentBossAbilities,
                     }}>
-                    {bossTimeline.boss}'s Abilities
+                    {bossTimeline.boss}&apos;s Abilities
                 </div>
                 <div className={styles['timeline-header']}
                     style={{

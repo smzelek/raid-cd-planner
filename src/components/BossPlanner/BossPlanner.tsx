@@ -102,15 +102,15 @@ const BossAbilityEditor = ({ ability, abilityPlan, onChange }: { ability: BossAb
 
 const TimelineInput = (props: { placeholder: string; value: string, onChange: (newValue: string) => void }) => {
     const validTimesRegex = new RegExp(/^(([\d]+:[\d]{2})(\s|$))+$/);
-    return <_RegexValidatedInput regex={validTimesRegex} className={"long"} {...props} />;
+    return <RegexValidatedInput regex={validTimesRegex} className={"long"} {...props} />;
 }
 
 const TimeInput = (props: { placeholder: string; value: string, onChange: (newValue: string) => void }) => {
     const validTimeRegex = new RegExp(/^([\d]+:[\d]{2})$/);
-    return <_RegexValidatedInput regex={validTimeRegex} className={"short"} {...props} />;
+    return <RegexValidatedInput regex={validTimeRegex} className={"short"} {...props} />;
 }
 
-const _RegexValidatedInput = ({ regex, placeholder, value, className, onChange }: { regex: RegExp; placeholder: string; className: string; value: string, onChange: (newValue: string) => void }) => {
+const RegexValidatedInput = ({ regex, placeholder, value, className, onChange }: { regex: RegExp; placeholder: string; className: string; value: string, onChange: (newValue: string) => void }) => {
     const [_value, _setValue] = useState(value);
 
     return (
