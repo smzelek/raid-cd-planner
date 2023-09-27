@@ -310,7 +310,7 @@ export const COOLDOWNS: Cooldowns = {
             ability: 'Holy Word: Salvation',
             spec: 'Holy',
             cooldown: 720,
-            duration: 0,
+            duration: 12,
             spellId: 265202,
         },
         {
@@ -349,6 +349,13 @@ export const COOLDOWNS: Cooldowns = {
             cooldown: 120,
             duration: 10,
             spellId: 108281,
+        },
+        {
+            ability: 'Wind Rush Totem',
+            spec: 'Restoration',
+            cooldown: 120,
+            duration: 5,
+            spellId: 192077,
         }
     ],
     'Monk': [
