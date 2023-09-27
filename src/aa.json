@@ -1,0 +1,127 @@
+{
+    "userPlayerPlan": {
+        "roster": [
+            {
+                "class": "Warrior",
+                "spec": "ALL",
+                "name": "Ferdaherde",
+                "playerId": "21cf0a94"
+            },
+            {
+                "class": "Paladin",
+                "spec": "Holy",
+                "name": "Niinetails",
+                "playerId": "38b34f5b"
+            },
+            {
+                "class": "Priest",
+                "spec": "Holy",
+                "name": "Healcera",
+                "playerId": "3fbd20fe"
+            },
+            {
+                "class": "Druid",
+                "spec": "ALL",
+                "name": "Jonnybadz",
+                "playerId": "ecaeda1b"
+            },
+            {
+                "class": "Shaman",
+                "spec": "Restoration",
+                "name": "Orkwa",
+                "playerId": "eeb25a1f"
+            },
+            {
+                "class": "Death Knight",
+                "spec": "ALL",
+                "name": "Willywankers",
+                "playerId": "1b938336"
+            },
+            {
+                "class": "Druid",
+                "spec": "Restoration",
+                "name": "Hodgypodgy",
+                "playerId": "f28451e1"
+            }
+        ],
+        "plannedAbilityUses": {
+            "f28451e1": {
+                "Stampeding Roar": "0:16 1:30 3:05 4:32",
+                "Tranquility": "1:50 4:24",
+                "Nature's Vigil": "4:12"
+            },
+            "1b938336": {
+                "Anti-Magic Zone": "0:23 3:55"
+            },
+            "eeb25a1f": {
+                "Healing Tide Totem": "0:27 3:46 6:46",
+                "Ancestral Guidance": "1:40",
+                "Spirit Link Totem": "1:48 4:48",
+                "Ascendance": "3:43 6:43",
+                "Wind Rush Totem": "4:00"
+            },
+            "ecaeda1b": {
+                "Stampeding Roar": "0:53 2:07 3:38"
+            },
+            "3fbd20fe": {
+                "Divine Hymn": "1:04 4:12",
+                "Symbol of Hope": "1:22 4:40",
+                "Holy Word: Salvation": "3:19"
+            },
+            "38b34f5b": {
+                "Aura Mastery": "1:16 4:19"
+            },
+            "21cf0a94": {
+                "Rallying Cry": "3:20 6:20"
+            }
+        },
+        "abilityCooldownOverrides": {
+            "f28451e1": {
+                "Stampeding Roar": "60",
+                "Tranquility": "120"
+            },
+            "ecaeda1b": {
+                "Stampeding Roar": "60"
+            }
+        },
+        "abilityDurationOverrides": {}
+    },
+    "userBossPlan": {
+        "boss": "Echo of Neltharion",
+        "timeline": {
+            "enrage": null,
+            "phases": {
+                "P1: The Earth Warder": {
+                    "start": "0:00",
+                    "abilities": {
+                        "Calamitous Strike": "0:27 1:03 1:40 2:17",
+                        "Echoing Fissure": "0:39 1:15 1:52 2:29",
+                        "Rushing Darkness": "0:15 0:52 1:29 2:06 2:43",
+                        "Shatter": "0:15 0:27 0:52 1:03 1:29 1:40 2:06",
+                        "Volcanic Heart": "0:15 0:52 1:29 2:06"
+                    }
+                },
+                "P2: Corruption Takes Hold": {
+                    "start": "2:22",
+                    "abilities": {
+                        "Rushing Darkness": "0:40 1:10 1:40 2:10",
+                        "Shadow Strike": "0:25 0:55 1:25 1:55 2:25",
+                        "Shatter": "0:55 1:25 1:55",
+                        "Surrender to Corruption": "0:15",
+                        "Umbral Annihilation": "0:33 1:03 1:33 2:03 2:33",
+                        "Volcanic Heart": "0:26 0:42 0:59 1:16 1:33 2:09 2:24",
+                        "Corrupt Players": "0:18 0:58 1:43"
+                    }
+                },
+                "P3: Reality Fractures": {
+                    "start": "5:04",
+                    "abilities": {
+                        "Calamitous Strike": "0:38 1:08 1:38 2:07",
+                        "Ebon Destruction": "0:48 1:18 1:48 2:18",
+                        "Rushing Darkness": "0:32 1:02 1:32 2:02"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -167,6 +167,11 @@ const LITERAL_BOSS_ABILITIES = {
             duration: 10,
         },
         {
+            ability: 'Corrupt Players',
+            spellId: 0,
+            duration: 5,
+        },
+        {
             ability: 'Umbral Annihilation',
             spellId: 404068,
             duration: 0,
@@ -247,6 +252,7 @@ export const BOSS_PHASES: BossPhases = {
                     'Surrender to Corruption': '0:15',
                     'Umbral Annihilation': '0:33 1:03 1:33 2:03 2:33',
                     'Volcanic Heart': '0:26 0:42 0:59 1:16 1:33 2:09 2:24',
+                    'Corrupt Players': '0:18 0:58 1:38'
                 }
             },
             'P3: Reality Fractures': {
