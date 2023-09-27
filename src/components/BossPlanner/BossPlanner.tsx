@@ -1,7 +1,7 @@
 import Select from "../Select/Select";
 import styles from '@/styles/Global.module.scss'
 import { BOSSES, BOSS_ABILITIES, BOSS_PHASES, BossAbility, BossPlan } from "@/constants";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 export default function BossPlanner(props: {
     bossPlan: BossPlan,
@@ -112,6 +112,9 @@ const TimeInput = (props: { placeholder: string; value: string, onChange: (newVa
 
 const RegexValidatedInput = ({ regex, placeholder, value, className, onChange }: { regex: RegExp; placeholder: string; className: string; value: string, onChange: (newValue: string) => void }) => {
     const [_value, _setValue] = useState(value);
+    useEffect(() => {
+        _setValue(value);
+    }, [value])
 
     return (
         <input
