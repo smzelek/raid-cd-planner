@@ -1,5 +1,5 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import style from './Select.module.scss'
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import './Select.scss'
 
 export type SelectProps<T> = {
   value: T | undefined;
@@ -151,7 +151,7 @@ const Select = <T,>({
 
   const renderCurrent = (): JSX.Element | string | undefined => {
     if (!options || !value) {
-      return placeholder ? (<span className={style["select-box--selected-text--placeholder"]}>{placeholder}</span>) : undefined;
+      return placeholder ? (<span className="select-box--selected-text--placeholder">{placeholder}</span>) : undefined;
     }
 
     return render(value);
@@ -230,22 +230,22 @@ const Select = <T,>({
       <div
         ref={ref}
         style={{ width: typeof width === 'string' ? width : `${width}px` }}
-        className={`${style['select']} ${isError ? style['error'] : ''} ${isDisabled ? style['disabled'] : ''} ${className ? className : ''} ${style[height]}`}
+        className={`select ${isError ? 'error' : ''} ${isDisabled ? 'disabled' : ''} ${className ? className : ''} ${height}`}
         tabIndex={0}
         onClick={() => setSelectOpen({ open: !dropdownOpen, focus: true, focusInput: false })}
         onKeyDown={selectKeydown}
       >
-        <div className={style['select-box']}>
-          <span className={style["select-box--selected-text"]}>{renderCurrent()}</span>
-          <img alt="" className={style["select-box--caret"]} src="/static/caret_down.svg" />
+        <div className="select-box">
+          <span className="select-box--selected-text">{renderCurrent()}</span>
+          <img alt="" className="select-box--caret" src="/assets/caret_down.svg" />
         </div>
         {dropdownOpen && (
-          <div className={style["select-dropdown"]}
+          <div className="select-dropdown"
             onClick={(e) => {
               e.preventDefault();
               e.nativeEvent.stopImmediatePropagation();
             }}>
-            {searchable && (<div className={style["select-search"]}>
+            {searchable && (<div className="select-search">
               <input
                 placeholder='search...'
                 value={search}
@@ -254,9 +254,9 @@ const Select = <T,>({
                   setSearch((e.target as HTMLInputElement).value)
                 }} />
             </div>)}
-            <div className={style["scroll-wrapper"]}>
+            <div className="scroll-wrapper">
               {clearable && (<div
-                className={`${style['select-option']} ${style['clear']}`}
+                className="select-option clear"
                 tabIndex={-1}
                 onKeyDown={optionKeydown(undefined)}
                 onClick={() => chooseOption(undefined)}>
@@ -264,8 +264,8 @@ const Select = <T,>({
               </div>)}
               {filteredOptions?.map((o, i) =>
               (<div
-                className={`${style['select-option']} ${value != undefined && mapToKey(value, i) === mapToKey(o, i) ? style['select-option--chosen'] : ''}`}
-                tabIndex={-1}
+                className={`select-option ${value != undefined && mapToKey(value, i) === mapToKey(o, i) ? 'select-option--chosen' : ''}`}
+                tabIndex={- 1}
                 ref={(ref) => (optionRefs.current[i] = { el: ref as HTMLDivElement, key: mapToKey(o, i) })}
                 key={o && mapToKey(o, i)}
                 onKeyDown={optionKeydown(o)}
@@ -274,10 +274,11 @@ const Select = <T,>({
               </div>)
               )}
             </div>
-          </div>
-        )}
-      </div>
-    </Fragment>
+          </div >
+        )
+        }
+      </div >
+    </Fragment >
   );
 };
 

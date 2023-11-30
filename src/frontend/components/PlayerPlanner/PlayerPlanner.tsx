@@ -1,8 +1,7 @@
 import Select from "../Select/Select";
-import styles from '@/styles/Global.module.scss'
-import { CLASS_COLORS, Class, Cooldown, RaidCDErrors, SPECS_WITH_CDS, UserPlayerPlan, cooldownsBySpec } from "@/constants";
-import { toSec } from "@/utils";
-import { useState } from "react";
+import { CLASS_COLORS, Class, Cooldown, RaidCDErrors, SPECS_WITH_CDS, UserPlayerPlan, cooldownsBySpec } from "../../constants";
+import { toSec } from "../../utils";
+import React, { useState } from "react";
 
 export default function PlayerPlanner(props: {
     playerPlan: UserPlayerPlan,
@@ -23,11 +22,11 @@ export default function PlayerPlanner(props: {
     };
 
     return (
-        <div className={`${styles['flex-scroll-wrapper']} ${styles['roster']}`}>
-            <h3 className={styles['title-bar']}>
+        <div className="flex-scroll-wrapper roster">
+            <h3 className="title-bar">
                 Players
             </h3>
-            <div className={`${styles['scroll-wrapper']} ${styles['roster-box']}`}>
+            <div className="scroll-wrapper roster-box">
                 <div style={{ marginBottom: '10px' }}>
                     <Select
                         width={'185px'}
@@ -48,14 +47,13 @@ export default function PlayerPlanner(props: {
                                 ]
                             })
                         }}
-                        render={(s) => <div className={styles['class-text']} style={{ color: CLASS_COLORS[s.class] }}>{s.display}</div>}
+                        render={(s) => <div className="class-text" style={{ color: CLASS_COLORS[s.class] }}>{s.display}</div>}
                     />
                 </div>
                 {playerPlan.roster.map((member, i) => (
-                    <div key={member.playerId} className={styles['roster-member']}>
+                    <div key={member.playerId} className="roster-member">
                         <div >
-                            <input className={`${styles['player-text']} 
-                            ${styles['player-name-editor']}`}
+                            <input className="player-text player-name-editor"
                                 style={{ color: CLASS_COLORS[member.class] }}
                                 value={member.name}
                                 onChange={(e) => {
@@ -71,12 +69,12 @@ export default function PlayerPlanner(props: {
                                 });
                             }}>X</button>
                         </div>
-                        <div className={styles['cooldown-section']}>
+                        <div className="cooldown-section">
                             {cooldownsBySpec(member).map((cd) => (
-                                <div key={cd.spellId} className={styles['cooldown-editor']}>
-                                    <a className={styles['cooldown-icon']} data-wh-icon-size="medium" href={`https://www.wowhead.com/spell=${cd.spellId}`}></a>
+                                <div key={cd.spellId} className="cooldown-editor">
+                                    <a className="cooldown-icon" data-wh-icon-size="medium" href={`https://www.wowhead.com/spell=${cd.spellId}`}></a>
                                     <input
-                                        className={`${styles['timing-editor']} ${styles['cooldown-timeline']}`}
+                                        className="timing-editor cooldown-timeline"
                                         placeholder="0:00 4:10 ..."
                                         value={playerPlan.rawPlannedAbilityUses?.[member.playerId]?.[cd.ability] || ''}
                                         onChange={(e) => {
@@ -133,9 +131,9 @@ export default function PlayerPlanner(props: {
                                                 })
                                             }
                                         }} />
-                                    <div className={styles['cooldown-overrides']}>
+                                    <div className="cooldown-overrides">
                                         <input
-                                            className={styles['override-cd-editor']}
+                                            className="override-cd-editor"
                                             placeholder="set cooldown"
                                             value={playerPlan.abilityCooldownOverrides?.[member.playerId]?.[cd.ability] || ''}
                                             onChange={(e) => {
@@ -151,7 +149,7 @@ export default function PlayerPlanner(props: {
                                                 })
                                             }} />
                                         <input
-                                            className={styles['override-dur-editor']}
+                                            className="override-dur-editor"
                                             placeholder="set duration"
                                             value={playerPlan.abilityDurationOverrides?.[member.playerId]?.[cd.ability] || ''}
                                             onChange={(e) => {
@@ -167,7 +165,7 @@ export default function PlayerPlanner(props: {
                                                 })
                                             }} />
                                     </div>
-                                    <span className={styles['cooldown-errors']}> {plannedAbilityUseErrors?.[member.playerId]?.[cd.ability]}</span>
+                                    <span className="cooldown-errors"> {plannedAbilityUseErrors?.[member.playerId]?.[cd.ability]}</span>
                                 </div>
                             ))}
                         </div>

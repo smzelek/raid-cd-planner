@@ -1,7 +1,6 @@
-import { Fragment } from 'react';
-import styles from '@/styles/Global.module.scss'
-import { BossTimelineData, CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Cooldown, PlayerTimelineData } from "@/constants";
-import { displaySec, toSec } from "@/utils";
+import React, { Fragment } from 'react';
+import { BossTimelineData, CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Cooldown, PlayerTimelineData } from "../../constants";
+import { displaySec, toSec } from "../../utils";
 
 export default function Timeline(props: { bossTimeline: BossTimelineData, playerTimeline: PlayerTimelineData }) {
     const { bossTimeline, playerTimeline } = props;
@@ -39,7 +38,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                     return null;
                 }
                 return (<div key={col}
-                    className={styles['timeline-ability']} style={{
+                    className="timeline-ability" style={{
                         gridRowStart: time + 2,
                         gridRowEnd: time + 2 + bossAbility.duration + 1,
                         gridColumn: col + bossColOffset,
@@ -75,7 +74,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                     return null;
                 }
                 return (<div key={`${time}-${col}-${playerAbility.spellId}`}
-                    className={styles['timeline-ability']}
+                    className="timeline-ability"
                     style={{
                         background: CLASS_COLORS[playerAbility.class],
                         color: CLASS_OFFSET_COLORS[playerAbility.class],
@@ -121,7 +120,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
             </a>
         )));
 
-        return (<div className={styles['available-cds']}
+        return (<div className="available-cds"
             style={{
                 gridRowStart: time + 2,
                 gridRowEnd: time + 2,
@@ -138,7 +137,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
             return null;
         }
         return (<div
-            className={styles['timeline-event']} style={{
+            className="timeline-event" style={{
                 gridRowStart: time + 2,
                 gridRowEnd: time + 3,
                 gridColumnStart: 1,
@@ -149,20 +148,20 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
     };
 
     return (
-        <div className={`${styles['flex-scroll-wrapper']} ${styles['timeline']}`}>
-            <h3 className={styles['title-bar']}>Timeline</h3>
-            <div className={`${styles['scroll-wrapper']} ${styles['timeline-grid']}`}
+        <div className="flex-scroll-wrapper timeline">
+            <h3 className="title-bar">Timeline</h3>
+            <div className="scroll-wrapper timeline-grid"
                 style={{
                     gridTemplateColumns: `min-content repeat(${maxConcurrentBossAbilities + maxConcurrentPlayerAbilities}, minmax(100px, min-content)) auto min-content`
                 }}>
-                <div className={styles['timeline-header']}
+                <div className="timeline-header"
                     style={{
                         gridRow: 1,
                         gridColumnStart: 1,
                         gridColumnEnd: 1,
                     }}>
                 </div>
-                <div className={styles['timeline-header']}
+                <div className="timeline-header"
                     style={{
                         gridRow: 1,
                         gridColumnStart: bossColOffset,
@@ -170,7 +169,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                     }}>
                     {bossTimeline.boss}&apos;s Abilities
                 </div>
-                <div className={styles['timeline-header']}
+                <div className="timeline-header"
                     style={{
                         gridRow: 1,
                         gridColumnStart: playerColOffset,
@@ -178,7 +177,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                     }}>
                     Raid CDs
                 </div>
-                <div className={styles['timeline-header']}
+                <div className="timeline-header"
                     style={{
                         gridRow: 1,
                         gridColumnStart: availableColOffset,
@@ -187,7 +186,7 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                     Available
                 </div>
                 {Array(timelineEnd + 1).fill(0).map((_, s) => (<Fragment key={s}>
-                    <div className={styles['timeline-grid-cell']}
+                    <div className="timeline-grid-cell"
                         style={{
                             gridRowStart: s + 2,
                             gridRowEnd: s + 2,
@@ -202,20 +201,20 @@ export default function Timeline(props: { bossTimeline: BossTimelineData, player
                     {playerAbilitiesForFrame(s)}
                     {availableRaidCDsForFrame(s)}
                     {(s % 5 === 0 ? (
-                        <div className={styles['timeline-major-ticks']}
+                        <div className="timeline-major-ticks"
                             style={{
                                 gridRowStart: s + 2,
                                 gridRowEnd: s + 2
                             }}>
                         </div>
                     ) : (<>
-                        <div className={styles['timeline-minor-ticks-emphasis']}
+                        <div className="timeline-minor-ticks-emphasis"
                             style={{
                                 gridRowStart: s + 2,
                                 gridRowEnd: s + 2,
                             }}>
                         </div>
-                        <div className={styles['timeline-minor-ticks']}
+                        <div className="timeline-minor-ticks"
                             style={{
                                 gridRowStart: s + 2,
                                 gridRowEnd: s + 2,

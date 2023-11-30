@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import React, { ReactNode, useState } from "react";
 
 export default function CopyButton(props: { onClick: () => void, children: ReactNode }) {
     const [copy, setCopy] = useState(false);

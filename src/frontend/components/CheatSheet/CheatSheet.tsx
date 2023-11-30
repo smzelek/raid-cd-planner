@@ -1,7 +1,6 @@
-import styles from '@/styles/Global.module.scss'
-import { CLASS_COLORS, RosterMember, SPECS_WITH_CDS, SpecChoices, cooldownsBySpec } from "@/constants";
-import { cooldownTimeDisplay } from "@/utils";
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { CLASS_COLORS, RosterMember, SPECS_WITH_CDS, SpecChoices, cooldownsBySpec } from "../../constants";
+import { cooldownTimeDisplay } from "../../utils";
 
 export default function CheatSheet(props: { roster: RosterMember[] }) {
     const { roster } = props;
@@ -17,14 +16,14 @@ export default function CheatSheet(props: { roster: RosterMember[] }) {
     const missingSpecs = SPECS_WITH_CDS.filter(s => !rosterHasSpec(s))
 
     return (
-        <div className={`${styles['flex-scroll-wrapper']} ${styles['cheat-sheet']}`}>
+        <div className="flex-scroll-wrapper cheat-sheet">
             <h3 onClick={() => {
                 setCollapsed(!collapsed);
-            }} className={styles['title-bar']}>Raid CD Cheat Sheet {collapsed ? '▲' : '▼'}</h3>
-            {!collapsed && (<div className={`${styles['scroll-wrapper']} ${styles['cheat-sheet-box']}`}>
+            }} className="title-bar">Raid CD Cheat Sheet {collapsed ? '▲' : '▼'}</h3>
+            {!collapsed && (<div className="scroll-wrapper cheat-sheet-box">
                 {missingSpecs.length > 0 ? (<div>
                     {missingSpecs.map(c => {
-                        return (<div key={c.display} className={styles['class-row']}>
+                        return (<div key={c.display} className="class-row">
                             <h4 style={{ color: CLASS_COLORS[c.class] }}>{c.display}</h4>
                             {cooldownsBySpec(c).map((cd) => (
                                 <div key={cd.spellId} >
@@ -36,7 +35,7 @@ export default function CheatSheet(props: { roster: RosterMember[] }) {
                 </div>) : <></>}
                 <div>
                     {haveSpecs.map(c => {
-                        return (<div key={c.display} className={styles['class-row']}>
+                        return (<div key={c.display} className="class-row">
                             <h4 style={{ color: CLASS_COLORS[c.class] }}>{c.display}</h4>
                             {cooldownsBySpec(c).map((cd) => (
                                 <div key={cd.spellId} >

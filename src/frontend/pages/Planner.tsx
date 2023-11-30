@@ -1,15 +1,14 @@
-import styles from '@/styles/Global.module.scss'
-import { useEffect, useRef, useState, useMemo } from 'react'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
 import {
     BOSS_ABILITIES, BOSS_PHASES, FLAT_COOLDOWNS, cooldownsBySpec,
     BossTimelineData, PlayerTimelineData, UserPlayerPlan, BossPlan, SavedProfile, PlayerId, Cooldown, Class
-} from '@/constants';
-import { toSec, offsetEntries, displaySec } from '@/utils';
-import CheatSheet from '@/components/CheatSheet/CheatSheet';
-import RaidPlanner from '@/components/PlayerPlanner/PlayerPlanner';
-import Timeline from '@/components/Timeline/Timeline';
-import BossPlanner from '@/components/BossPlanner/BossPlanner';
-import CopyButton from '@/components/CopyButton/CopyButton';
+} from '../constants';
+import { toSec, offsetEntries, displaySec } from '../utils';
+import CheatSheet from '../components/CheatSheet/CheatSheet';
+import RaidPlanner from '../components/PlayerPlanner/PlayerPlanner';
+import Timeline from '../components/Timeline/Timeline';
+import BossPlanner from '../components/BossPlanner/BossPlanner';
+import CopyButton from '../components/CopyButton/CopyButton';
 
 export default function Planner() {
     const effectRan = useRef(false);
@@ -204,24 +203,12 @@ export default function Planner() {
 
     return (
         <>
-            <header className={styles['header']}>
-                <h1 className={styles['app-title-bar']}>
-                    Raid CD Planner
-                    <div className={styles['app-title-actions']}>
-                        <CopyButton onClick={exportNote}>Export to RT Note</CopyButton>
-                        <CopyButton onClick={exportToSavedString}>Export to Profile String</CopyButton>
-                        <button onClick={importFromSavedString}>Import from Profile String</button>
-                    </div>
-                </h1>
-            </header>
-            <main className={styles['main']}>
-                <BossPlanner bossPlan={userBossPlan} setBossPlan={setUserBossPlan} />
-                <section className={styles.builder}>
-                    <RaidPlanner playerPlan={userPlayerPlan} setPlayerPlan={setUserPlayerPlan} />
-                    <CheatSheet roster={userPlayerPlan.roster} />
-                </section>
-                <Timeline bossTimeline={bossTimelineData} playerTimeline={playerTimelineData} />
-            </main>
+            <BossPlanner bossPlan={userBossPlan} setBossPlan={setUserBossPlan} />
+            <section className='builder'>
+                <RaidPlanner playerPlan={userPlayerPlan} setPlayerPlan={setUserPlayerPlan} />
+                <CheatSheet roster={userPlayerPlan.roster} />
+            </section>
+            <Timeline bossTimeline={bossTimelineData} playerTimeline={playerTimelineData} />
         </>
     )
 }
