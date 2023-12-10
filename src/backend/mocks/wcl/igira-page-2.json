@@ -1,0 +1,17 @@
+{
+    "data": {
+        "reportData": {
+            "report": {
+                "bossAbilityDamageEvents": {
+                    "data": [],
+                    "nextPageTimestamp": null
+                }
+            }
+        },
+        "rateLimitData": {
+            "limitPerHour": 3600,
+            "pointsSpentThisHour": 33,
+            "pointsResetIn": 928
+        }
+    }
+}

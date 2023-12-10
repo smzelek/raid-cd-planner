@@ -1,5 +1,6 @@
 export type Class = 'Warrior' | 'Paladin' | 'Hunter' | 'Rogue' | 'Priest' | 'Shaman' | 'Mage' | 'Warlock' | 'Monk' | 'Druid' | 'Demon Hunter' | 'Death Knight' | 'Evoker';
 export type Bosses = 'Rashok' | 'Magmorax' | 'Echo of Neltharion';
+export const ClassList = ['Warrior', 'Paladin', 'Hunter', 'Rogue', 'Priest', 'Shaman', 'Mage', 'Warlock', 'Monk', 'Druid', 'Demon Hunter', 'Death Knight', 'Evoker'];
 
 interface _SPECS extends Record<Class, string[]> {
     'Warrior': ['Arms', 'Fury', 'Protection'];
@@ -17,11 +18,128 @@ interface _SPECS extends Record<Class, string[]> {
     'Evoker': ['Devastation', 'Preservation', 'Augmentation'];
 }
 
-type SpecOf<C extends Class> = _SPECS[C][number] | 'ALL'
+export type ClassIds<C extends Class> = {
+    classId: number;
+    specIds: Record<SpecOf<C>, number>;
+};
+
+export type Ids = {
+    [T in Class]: ClassIds<T>;
+};
+
+export const WCLClassIds: Ids = {
+    'Death Knight': {
+        classId: 1,
+        specIds: {
+            'Blood': 1,
+            'Frost': 2,
+            'Unholy': 3,
+        }
+    },
+    'Druid': {
+        classId: 2,
+        specIds: {
+            'Balance': 1,
+            'Feral': 2,
+            'Guardian': 3,
+            'Restoration': 4
+        }
+    },
+    'Hunter': {
+        classId: 3,
+        specIds: {
+            'Beast Mastery': 1,
+            'Marksmanship': 2,
+            'Survival': 3,
+        }
+    },
+    'Mage': {
+        classId: 4,
+        specIds: {
+            'Arcane': 1,
+            'Fire': 2,
+            'Frost': 3,
+        }
+    },
+    'Monk': {
+        classId: 5,
+        specIds: {
+            'Brewmaster': 1,
+            'Mistweaver': 2,
+            'Windwalker': 3,
+        }
+    },
+    'Paladin': {
+        classId: 6,
+        specIds: {
+            'Holy': 1,
+            'Protection': 2,
+            'Retribution': 3,
+        }
+    },
+    'Priest': {
+        classId: 7,
+        specIds: {
+            'Discipline': 1,
+            'Holy': 2,
+            'Shadow': 3,
+        }
+    },
+    'Rogue': {
+        classId: 8,
+        specIds: {
+            'Assassination': 1,
+            'Subtlety': 3,
+            'Outlaw': 4,
+        }
+    },
+    'Shaman': {
+        classId: 9,
+        specIds: {
+            'Elemental': 1,
+            'Enhancement': 2,
+            'Restoration': 3,
+        }
+    },
+    'Warlock': {
+        classId: 10,
+        specIds: {
+            'Affliction': 1,
+            'Demonology': 2,
+            'Destruction': 3
+        }
+    },
+    'Warrior': {
+        classId: 11,
+        specIds: {
+            'Arms': 1,
+            'Fury': 2,
+            'Protection': 3,
+        }
+    },
+    'Demon Hunter': {
+        classId: 12,
+        specIds: {
+            'Havoc': 1,
+            'Vengeance': 2
+        }
+    },
+    'Evoker': {
+        classId: 13,
+        specIds: {
+            'Devastation': 1,
+            'Preservation': 2,
+            'Augmentation': 3
+        }
+    },
+};
+
+export type SpecOf<C extends Class> = _SPECS[C][number];
+type SpecOfClassOrAnySpec<C extends Class> = _SPECS[C][number] | 'ALL';
 
 export type Cooldown<T extends Class> = {
     ability: string;
-    spec: SpecOf<T>;
+    spec: SpecOfClassOrAnySpec<T>;
     cooldown: number;
     duration: number;
     spellId: number;
@@ -33,11 +151,21 @@ export type Cooldowns = {
 
 export type BossAbilities = Record<Bosses, readonly BossAbility[]>;
 
-type SpecClassMapper<T extends Class> = T extends Class ? { [key in T]: { spec: SpecOf<T> } }[T] & { class: T } : never;
+type SpecClassMapper<T extends Class> = T extends Class ? { [key in T]: { spec: SpecOfClassOrAnySpec<T> } }[T] & { class: T } : never;
 export type SpecMatchesClass = SpecClassMapper<Class>;
 export type SpecChoices = SpecMatchesClass & {
     display: string;
 };
+
+export type HealerSpec =
+    | { class: 'Paladin', spec: 'Holy' }
+    | { class: 'Priest', spec: 'Discipline' }
+    | { class: 'Priest', spec: 'Holy' }
+    | { class: 'Shaman', spec: 'Restoration' }
+    | { class: 'Monk', spec: 'Mistweaver' }
+    | { class: 'Druid', spec: 'Restoration' }
+    | { class: 'Evoker', spec: 'Preservation' };
+
 export type RosterMember = SpecMatchesClass & {
     name: string;
     playerId: string;
