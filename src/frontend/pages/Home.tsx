@@ -9,13 +9,14 @@ import RaidPlanner from '../components/PlayerPlanner/PlayerPlanner';
 import Timeline from '../components/Timeline/Timeline';
 import BossPlanner from '../components/BossPlanner/BossPlanner';
 import CopyButton from '../components/CopyButton/CopyButton';
+import { Link } from 'react-router-dom';
 
 export default function Home() {
 
     return (
         <>
             Get started:
-            <button>Create Plan</button>
+            <Link to="/create">Create Plan</Link>
             <button>Load Plan</button>
         </>
     )

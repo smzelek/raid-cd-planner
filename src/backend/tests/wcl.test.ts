@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import { setupServer } from 'msw/node';
-import gnarlroot from '../mocks/blizzard/gnarlroot';
-import { findLogsForHealComp, HealerComp, loadBossAbilityDamage, loadRaidCDData, parsePhasesForEncounter, toFilterString } from '../warcraft-logs';
+import { WarcraftLogsApi, HealerComp } from '../services/wcl.service';
 import healCompLogs from '../mocks/wcl/heal-comp-logs';
 import raidCDUsages from '../mocks/wcl/raid-cd-usages';
 import bossAbilityDamageEvents from '../mocks/wcl/boss-ability-damage-events';
@@ -22,25 +21,6 @@ test.beforeEach(function () {
     server.resetHandlers();
 });
 
-test.describe('function: parsePhasesForEncounter', () => {
-    test('works', async () => {
-        const result = parsePhasesForEncounter(gnarlroot);
-        assert.deepEqual(
-            result,
-            [
-                {
-                    "title": "Stage One: Garden of Despair",
-                    "spells": [{ "id": 421898, "name": "Flaming Pestilence" }, { "id": 421971, "name": "Controlled Burn" }, { "id": 421986, "name": "Tainted Bloom" }, { "id": 422023, "name": "Shadow-Scorched Earth" }, { "id": 422026, "name": "Tortured Scream" }, { "id": 422039, "name": "Shadowflame Cleave" }, { "id": 422053, "name": "Shadow Spines" }, { "id": 424352, "name": "Dreadfire Barrage" }, { "id": 425816, "name": "Blazing Pollen" }, { "id": 425819, "name": "Flaming Sap" }, { "id": 428992, "name": "Vicious Thicket" }, { "id": 429009, "name": "Overgrown" }]
-                },
-                {
-                    "title": "Stage Two: Agonizing Growth",
-                    "spells": [{ "id": 421013, "name": "Doom Cultivation" }, { "id": 421038, "name": "Ember-Charred" }, { "id": 421350, "name": "Splintering Charcoal" }, { "id": 421840, "name": "Uprooted Agony" }, { "id": 422373, "name": "Toxic Loam" }, { "id": 425648, "name": "Doom Roots" }, { "id": 425709, "name": "Rising Mania" }, { "id": 426548, "name": "Searing Bramble" }]
-                }
-            ]
-        );
-    });
-});
-
 test.describe('function: toFilterString', () => {
     test('works', () => {
         const healComp: HealerComp = [
@@ -49,13 +29,13 @@ test.describe('function: toFilterString', () => {
             { 'class': 'Monk', 'spec': 'Mistweaver', count: 1 },
             { 'class': 'Evoker', 'spec': 'Preservation', count: 1 },
         ]
-        const result = toFilterString(healComp);
+        const result = WarcraftLogsApi.toFilterString(healComp);
         assert.deepEqual(result, "2.4.1,5.2.1,6.1.1,13.2.1");
     });
 });
 
 test.describe('function: findLogsForHealComp', () => {
-    test('with mock data', async () => {
+    test('with mocks', async () => {
         process.env.WARCRAFT_LOGS_API_V1_KEY = 'MOCK_API_KEY';
         const gnarlroot = 2820;
         const healComp: HealerComp = [
@@ -66,7 +46,7 @@ test.describe('function: findLogsForHealComp', () => {
         ];
 
         server.use(...healCompLogs)
-        const result = await findLogsForHealComp(gnarlroot, healComp);
+        const result = await new WarcraftLogsApi().findLogsForHealComp(gnarlroot, healComp);
         assert.deepEqual(result,
             {
                 "error": null,
@@ -89,7 +69,7 @@ test.describe('function: loadRaidCDData', () => {
     test('with mocks', async () => {
         process.env.WARCRAFT_LOGS_API_V2_ACCESS_TOKEN = 'MOCK_ACCESS_TOKEN';
         server.use(...raidCDUsages)
-        const result = await loadRaidCDData("Yb7Gpkh4A2Z8vR9T", 5);
+        const result = await new WarcraftLogsApi().loadRaidCDData("Yb7Gpkh4A2Z8vR9T", 5);
         assert.deepEqual(result,
             {
                 "error": null,
@@ -111,7 +91,7 @@ test.describe('function: loadBossAbilityDamage', () => {
     test('with mocks', async () => {
         process.env.WARCRAFT_LOGS_API_V2_ACCESS_TOKEN = 'MOCK_ACCESS_TOKEN';
         server.use(...bossAbilityDamageEvents)
-        const result = await loadBossAbilityDamage("Yb7Gpkh4A2Z8vR9T", 5, [426150, 418533, 416056, 422776]);
+        const result = await new WarcraftLogsApi().loadBossAbilityDamage("Yb7Gpkh4A2Z8vR9T", 5, [426150, 418533, 416056, 422776]);
         assert.deepEqual(result,
             {
                 "error": null,
@@ -122,4 +102,3 @@ test.describe('function: loadBossAbilityDamage', () => {
         )
     });
 });
-

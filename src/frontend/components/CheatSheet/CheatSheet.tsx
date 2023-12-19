@@ -19,7 +19,7 @@ export default function CheatSheet(props: { roster: RosterMember[] }) {
         <div className="flex-scroll-wrapper cheat-sheet">
             <h3 onClick={() => {
                 setCollapsed(!collapsed);
-            }} className="title-bar">Raid CD Cheat Sheet {collapsed ? '▲' : '▼'}</h3>
+            }} className="title-bar">Raid CDs {collapsed ? '▲' : '▼'}</h3>
             {!collapsed && (<div className="scroll-wrapper cheat-sheet-box">
                 {missingSpecs.length > 0 ? (<div>
                     {missingSpecs.map(c => {

@@ -5,7 +5,9 @@
   font-family: 'Inter';
 }
 
-input, button, button>span {
+input,
+button,
+button>span {
   font-family: Arial;
 }
 
@@ -429,4 +431,30 @@ a {
   flex-direction: column;
   border: 1px solid gray;
   border-radius: 4px;
+}
+
+#dashboard {
+  display: flex;
+  width: 100%;
+
+  .existing {
+    display: flex;
+    align-items: center;
+  }
+
+  .plan-selection {
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+
+    .boss-row {
+      display: contents;
+
+      >* {
+        background: #191919;
+        margin: 10px 0px;
+        display: flex;
+        align-items: center;
+      }
+    }
+  }
 }

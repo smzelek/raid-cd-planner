@@ -11,7 +11,6 @@ import BossPlanner from '../components/BossPlanner/BossPlanner';
 import CopyButton from '../components/CopyButton/CopyButton';
 
 export default function Planner() {
-    const effectRan = useRef(false);
     const [userBossPlan, setUserBossPlan] = useState<BossPlan>({
         boss: 'Echo of Neltharion',
         timeline: BOSS_PHASES['Echo of Neltharion'],
@@ -25,20 +24,10 @@ export default function Planner() {
     });
 
     useEffect(() => {
-        if (effectRan.current && (window as any).WH) {
+        if ((window as any).WH) {
             (window as any).WH.Tooltips.refreshLinks()
         }
     }, [userBossPlan, userPlayerPlan])
-
-    useEffect(() => {
-        if (!effectRan.current) {
-            const scriptTag = document.createElement('script');
-            (window as any).whTooltips = { 'colorLinks': true, 'iconizeLinks': true, 'renameLinks': false, 'iconSize': 'small' };
-            scriptTag.src = "https://wow.zamimg.com/js/tooltips.js"
-            document.head.appendChild(scriptTag)
-            effectRan.current = true
-        }
-    }, [])
 
     const bossTimelineData: BossTimelineData = useMemo(() => {
         const phaseArray = Object.values(userBossPlan.timeline.phases);

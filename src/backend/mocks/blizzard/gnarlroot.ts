@@ -1,6 +1,6 @@
-import { Encounter } from "@/backend/warcraft-logs";
+import { BlizzardApiEncounter } from "../../services/blizzard.service";
 
-const gnarlroot: Encounter = {
+const gnarlroot: BlizzardApiEncounter = {
     "_links": {
         "self": {
             "href": "https://us.api.blizzard.com/data/wow/journal-encounter/2564?namespace=static-10.2.0_51825-us"

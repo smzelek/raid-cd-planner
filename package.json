@@ -13,7 +13,7 @@
     "watch:server": "nodemon src/backend/main.ts",
     "build:app": "webpack --config ./webpack/webpack.prod.js",
     "build:server": "tsc --p src/backend/tsconfig.json",
-    "test": "tsc --noEmit && node --loader tsx --test src/backend/tests/warcraft-logs.test.ts",
+    "test": "node --loader tsx --test src/backend/**/*.test.ts",
     "build": "npm run build:server",
     "start": "node build/src/backend/main.js"
   },
@@ -24,6 +24,7 @@
     "express": "^4.17.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-query": "^3.39.3",
     "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
@@ -60,7 +61,7 @@
     "ts-loader": "^9.4.1",
     "ts-node": "^10.9.1",
     "tsx": "^4.2.0",
-    "typescript": "^5.3.3",
+    "typescript": "^5.2.0",
     "url-loader": "^4.1.0",
     "webpack": "^5.75.0",
     "webpack-bundle-analyzer": "^4.7.0",
