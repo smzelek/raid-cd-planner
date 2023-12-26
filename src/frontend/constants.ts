@@ -143,6 +143,7 @@ export type Cooldown<T extends Class> = {
     cooldown: number;
     duration: number;
     spellId: number;
+    category?: "UTIL";
 };
 
 export type Cooldowns = {
@@ -157,19 +158,24 @@ export type SpecChoices = SpecMatchesClass & {
     display: string;
 };
 
-export type HealerSpec =
-    | { class: 'Paladin', spec: 'Holy' }
-    | { class: 'Priest', spec: 'Discipline' }
-    | { class: 'Priest', spec: 'Holy' }
-    | { class: 'Shaman', spec: 'Restoration' }
-    | { class: 'Monk', spec: 'Mistweaver' }
-    | { class: 'Druid', spec: 'Restoration' }
-    | { class: 'Evoker', spec: 'Preservation' };
+export const HealerSpecs =
+    [
+        { class: 'Paladin', spec: 'Holy' },
+        { class: 'Priest', spec: 'Discipline' },
+        { class: 'Priest', spec: 'Holy' },
+        { class: 'Shaman', spec: 'Restoration' },
+        { class: 'Monk', spec: 'Mistweaver' },
+        { class: 'Druid', spec: 'Restoration' },
+        { class: 'Evoker', spec: 'Preservation' }
+    ]
+
+export type HealerSpec = (typeof HealerSpecs)[number];
 
 export type RosterMember = SpecMatchesClass & {
     name: string;
     playerId: string;
 };
+export type Roster = RosterMember[];
 export type BossAbility = {
     ability: string;
     spellId: number;
@@ -453,6 +459,7 @@ export const COOLDOWNS: Cooldowns = {
             cooldown: 180,
             duration: 4,
             spellId: 64901,
+            category: 'UTIL'
         }
     ],
     'Shaman': [
@@ -490,6 +497,7 @@ export const COOLDOWNS: Cooldowns = {
             cooldown: 120,
             duration: 5,
             spellId: 192077,
+            category: 'UTIL'
         }
     ],
     'Monk': [
@@ -510,18 +518,12 @@ export const COOLDOWNS: Cooldowns = {
             spellId: 740,
         },
         {
-            ability: 'Nature\'s Vigil',
-            spec: 'Restoration',
-            cooldown: 90,
-            duration: 15,
-            spellId: 124974,
-        },
-        {
             ability: 'Stampeding Roar',
             spec: 'ALL',
             cooldown: 120,
             duration: 8,
             spellId: 77761,
+            category: 'UTIL'
         },
     ],
     'Death Knight': [
@@ -580,7 +582,7 @@ export const CLASS_COLORS: Record<Class, string> = {
 
 export const CLASS_OFFSET_COLORS: Record<Class, string> = {
     'Warrior': '#FFFFFF',
-    'Paladin': '#FFFFFF',
+    'Paladin': '#000000',
     'Hunter': '#FFFFFF',
     'Rogue': '#FFFFFF',
     'Priest': '#000000',

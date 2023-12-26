@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 8000;
 
 const app = express();
 app.use(cors());
+app.use(express.json())
 app.use(raidtimers);
 
 function wrapResponseMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -28,7 +29,7 @@ function wrapResponseMiddleware(req: Request, res: Response, next: NextFunction)
 app.use(wrapResponseMiddleware);
 
 const errorMiddleware = (error: Error, req: Request, res: Response, next: NextFunction): void => {
-    logFunction(errorMiddleware, error.toString());
+    logFunction(errorMiddleware, { err: error.toString(), stack: error.stack });
     const internalServerError: ApiErrorResponse = {
         error: "Internal Server Error",
         status: 500,

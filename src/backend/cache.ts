@@ -5,6 +5,8 @@ export const CACHE_KEYS = constrain({
     accessToken: () => 'BLIZZARD_ACCESS_TOKEN',
     currentRaid: () => 'BLIZZARD_CURRENT_RAID',
     raidEncounter: (encounterId: number) => `BLIZZARD_RAID_ENCOUNTER_${encounterId}`,
+    searchLogs: (encounterId: number, filter: string) => `WCL_SEARCH_LOGS_${encounterId}__${filter}`,
+    logDetails: (reportId: string, fightId: number) => `WCL_LOG_DETAILS_${reportId}__${fightId}`,
 });
 
 export class SimpleCache {
@@ -19,18 +21,20 @@ export class SimpleCache {
             throw 'Invalid TTL for Cache';
         }
 
-        logFunction(this.set, `Caching ${key} for ${ttl}`)
+        logFunction(this.set, `CACHE STORE ${key} for ${ttl}`)
 
         this.cache.set(key, value);
         setTimeout(function (this: SimpleCache) {
             this.cache.delete(key);
-            logFunction(this.set, `Evicting ${key} after ${ttl}`)
+            logFunction(this.set, `CACHE EVICT ${key} after ${ttl}`)
         }.bind(this), ttl)
     }
 
     get(key: string) {
         if (this.cache.has(key)) {
-            logFunction(this.get, `Retrieving ${key}`)
+            logFunction(this.get, `CACHE HIT ${key}`)
+        } else {
+            logFunction(this.get, `CACHE MISS ${key}`)
         }
         return this.cache.get(key);
     }

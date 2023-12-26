@@ -1,26 +1,33 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Planner from "./pages/Planner";
 import {
-  createBrowserRouter,
   createHashRouter,
   RouterProvider,
 } from "react-router-dom";
-import Home from './pages/Home';
-import CreatePlan from './pages/CreatePlan';
+import { PlanDashboard } from './pages/CreatePlan';
 import { QueryClient, QueryClientProvider } from 'react-query';
-const queryClient = new QueryClient()
+import './global.scss';
 
-export const App = () => {
-  const router = createHashRouter([
-    {
-      path: "/",
-      element: <CreatePlan />,
-    },
-    {
-      path: "/planner",
-      element: <Planner />,
-    },
-  ]);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false
+    }
+  }
+});
+
+const router = createHashRouter([
+  {
+    path: "/",
+    element: <PlanDashboard />,
+  },
+  {
+    path: "/planner",
+    element: <Planner />,
+  },
+]);
+
+export default function App() {
   const effectRan = useRef(false);
 
   useEffect(() => {
@@ -35,27 +42,26 @@ export const App = () => {
 
   return (
     <>
-      <span style={{ display: 'none' }}>
-        {process.env.COMMIT_HASH}
-      </span>
-      <div className='wrapper'>
-
-        <header className='header'>
-          <h1 className='app-title-bar'>
-            raidtimers
-            {/* <div className='app-title-actions'>
-              <CopyButton onClick={exportNote}>Export to RT Note</CopyButton>
-              <CopyButton onClick={exportToSavedString}>Export to Profile String</CopyButton>
-              <button onClick={importFromSavedString}>Import from Profile String</button>
-            </div> */}
-          </h1>
-        </header>
-        <main className='main'>
-          <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <span style={{ display: 'none' }}>
+          {/* {process.env.COMMIT_HASH} */}
+        </span>
+        <div className='wrapper'>
+          <header className='header'>
+            <h1 className='app-title-bar'>
+              raidtimers
+              {/* <div className='app-title-actions'>
+                <CopyButton onClick={exportNote}>Export to RT Note</CopyButton>
+                <CopyButton onClick={exportToSavedString}>Export to Profile String</CopyButton>
+                <button onClick={importFromSavedString}>Import from Profile String</button>
+              </div> */}
+            </h1>
+          </header>
+          <main className='main'>
             <RouterProvider router={router} />
-          </QueryClientProvider>
-        </main>
-      </div>
+          </main>
+        </div>
+      </QueryClientProvider>
     </>
   );
 }

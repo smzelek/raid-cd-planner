@@ -2,25 +2,28 @@ import { CACHE_KEYS, SimpleCache } from '../cache';
 import { minutesToMilliseconds } from 'date-fns';
 import { BLIZZARD_CLIENT_ID, BLIZZARD_CLIENT_SECRET } from '../env';
 import { BLIZZARD_API_ROUTES } from '../routes';
-import { daysToMilliseconds, logFunction } from '../../utils';
-import { Encounter } from '../../types';
+import { CURRENT_RAID_ID, daysToMilliseconds, logFunction } from '../../utils';
+import { BlizzardEncounter, Encounter } from '../../types';
 
-const CURRENT_RAID_ID = 1207; // Amirdrassil
 
 export type Phases = {
     title: string;
     spells: Spell[];
 }
-type Spell = {
+export type Spell = {
+    spellId: number;
+    ability: string;
+}
+type EncounterSpell = {
     id: number;
     name: string;
-    key?: any;
+    key?: string;
 }
 type EncounterSections = {
     id: number;
     title: string;
     body_text?: string;
-    spell?: Spell;
+    spell?: EncounterSpell;
     sections?: EncounterSections[];
     creature_display?: any;
 }
@@ -72,12 +75,13 @@ export class BlizzardApi {
         this.cache = new SimpleCache();
     }
 
-    async getAccessToken(): Promise<string> {
+    async getBlizzardAccessToken(): Promise<string> {
         const cachedToken = this.cache.get(CACHE_KEYS.accessToken())
         if (cachedToken) {
             return cachedToken;
         }
 
+        logFunction(this.getBlizzardAccessToken, 'Getting new access token from API');
         const basicAuthToken = Buffer.from(`${BLIZZARD_CLIENT_ID()}:${BLIZZARD_CLIENT_SECRET()}`).toString('base64');
         const formData = new FormData();
         formData.append('grant_type', 'client_credentials');
@@ -89,7 +93,7 @@ export class BlizzardApi {
             }
         });
         if (!res.ok) {
-            throw `Failed to getAccessToken, ${res.status}`
+            throw `Failed to getBlizzardAccessToken, ${res.status}`
         }
         const json: AccessToken = await res.json();
 
@@ -103,7 +107,8 @@ export class BlizzardApi {
             return cached;
         }
 
-        const token = await this.getAccessToken();
+        logFunction(this.loadCurrentRaid, 'Getting current raid from API');
+        const token = await this.getBlizzardAccessToken();
         const res = await fetch(BLIZZARD_API_ROUTES.journalInstance(CURRENT_RAID_ID), {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -118,14 +123,15 @@ export class BlizzardApi {
         return raid;
     }
 
-    async loadJournalEncounter(args: { encounterId: number }): Promise<Encounter> {
+    async loadJournalEncounter(args: { encounterId: number }): Promise<BlizzardEncounter> {
         logFunction(this.loadJournalEncounter, args);
         const cached = this.cache.get(CACHE_KEYS.raidEncounter(args.encounterId))
         if (cached) {
             return cached;
         }
 
-        const token = await this.getAccessToken();
+        logFunction(this.loadJournalEncounter, 'Getting journal encounter from API');
+        const token = await this.getBlizzardAccessToken();
         const res = await fetch(BLIZZARD_API_ROUTES.journalEncounter(args.encounterId), {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -137,15 +143,19 @@ export class BlizzardApi {
         const encounter = await res.json();
         const mappedEncounter = BlizzardApi.mapEncounterResponse(encounter);
 
-        this.cache.set(CACHE_KEYS.raidEncounter(args.encounterId), mappedEncounter, minutesToMilliseconds(10));
+        this.cache.set(CACHE_KEYS.raidEncounter(args.encounterId), mappedEncounter, minutesToMilliseconds(1000));
         return mappedEncounter;
     }
 
-    static mapEncounterResponse(response: BlizzardApiEncounter): Encounter {
+    static mapEncounterResponse(response: BlizzardApiEncounter): BlizzardEncounter {
+        const phases = parsePhasesForEncounter(response);
+        const spellsFromPhases = phases.map(p => p.spells).flat(1);
+        const allSpells = [...new Set(spellsFromPhases.map(s => s.spellId))].map(id => spellsFromPhases.find(s => s.spellId === id)!);
         return {
             id: response.id,
             name: response.name,
-            phases: parsePhasesForEncounter(response),
+            phases,
+            spells: allSpells,
         };
     }
 }
@@ -162,8 +172,8 @@ export const parsePhasesForEncounter = (encounter: BlizzardApiEncounter): Phases
             spell: cur.spell,
         });
         const spellList: Spell[] = Object.entries(uniqueSpells).map(([k, v]) => ({
-            id: +k,
-            name: v,
+            spellId: +k,
+            ability: v,
         }))
         return [
             ...acc,
@@ -181,8 +191,8 @@ export const parsePhasesForEncounter = (encounter: BlizzardApiEncounter): Phases
     // otherwise it's a single phase boss
     const spells = _getNestedSpells(encounter)
     const spellList: Spell[] = Object.entries(spells).map(([k, v]) => ({
-        id: +k,
-        name: v,
+        spellId: +k,
+        ability: v,
     }));
     return [
         {

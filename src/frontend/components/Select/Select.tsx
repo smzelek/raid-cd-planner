@@ -237,7 +237,7 @@ const Select = <T,>({
       >
         <div className="select-box">
           <span className="select-box--selected-text">{renderCurrent()}</span>
-          <img alt="" className="select-box--caret" src="/assets/caret_down.svg" />
+          <img alt="" className="select-box--caret" src="/caret_down.svg" />
         </div>
         {dropdownOpen && (
           <div className="select-dropdown"

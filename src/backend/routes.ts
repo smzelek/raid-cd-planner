@@ -12,5 +12,6 @@ export const WCL_ROUTES = constrain({
     accessToken: () => 'https://www.warcraftlogs.com/oauth/token',
     graphql: () => 'https://www.warcraftlogs.com/api/v2/client',
     websiteReportLink: (reportId: string, fightId: number) => `https://www.warcraftlogs.com/reports/${reportId}#fight=${fightId}`,
-    encounterLogs: (encounterId: number, params: string) => `https://www.warcraftlogs.com/v1/rankings/encounter/${encounterId}?${params.toString()}`,
+    encounterLogs: (encounterId: number, params: string) => `https://www.warcraftlogs.com/v1/rankings/encounter/${encounterId}?${params}`,
+    zones: (params: string) => `https://www.warcraftlogs.com/v1/zones?${params}`,
 });

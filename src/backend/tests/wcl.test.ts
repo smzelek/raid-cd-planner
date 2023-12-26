@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import { setupServer } from 'msw/node';
-import { WarcraftLogsApi, HealerComp } from '../services/wcl.service';
+import { WarcraftLogsApi } from '../services/wcl.service';
 import healCompLogs from '../mocks/wcl/heal-comp-logs';
 import raidCDUsages from '../mocks/wcl/raid-cd-usages';
 import bossAbilityDamageEvents from '../mocks/wcl/boss-ability-damage-events';
+import { HealerComp } from '../../types';
 
 let server = setupServer();
 let apiCalls = [];

@@ -1,4 +1,6 @@
-import { Phases } from "./backend/services/blizzard.service";
+import { Phases, Spell } from "./backend/services/blizzard.service";
+import { HealerSpec } from "./frontend/constants";
+import { CURRENT_RAID_ENCOUNTER_IDS } from "./utils";
 
 export type dash_case_string = string;
 export type formatted_string = string;
@@ -17,10 +19,15 @@ export interface ApiResponse {
     status: number;
 }
 
-export type Encounter = {
+export type BlizzardEncounter = {
     id: number;
     name: string;
     phases: Phases[];
+    spells: Spell[];
+}
+
+export type Encounter = BlizzardEncounter & {
+    wclId: CURRENT_RAID_ENCOUNTER_IDS;
 }
 
 export type CurrentRaid = {
@@ -28,4 +35,6 @@ export type CurrentRaid = {
     name: string;
     bosses: Encounter[];
 }
+
+export type HealerComp = Array<HealerSpec & { count: number; }>;
 

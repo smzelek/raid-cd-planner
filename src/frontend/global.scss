@@ -34,6 +34,11 @@ a {
   display: inline-block;
 }
 
+a.link {
+  text-decoration: underline;
+  color: rgb(112, 214, 248);
+}
+
 ::-webkit-scrollbar-corner {
   background: rgba(0, 0, 0, 0.5);
 }
@@ -83,7 +88,6 @@ a {
   a {
     display: flex;
     align-items: center;
-    font-size: 14px;
   }
 }
 
@@ -158,15 +162,23 @@ a {
 
 .roster {
   flex-grow: 1;
-  min-height: 400px;
+  background: #141414;
+  padding: 10px;
 
   .roster-box {
     padding: 10px;
     padding-bottom: 40px;
   }
 
+  .select {
+    margin-bottom: 10px;
+  }
+
   .roster-member {
-    margin-top: 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
   }
 
   .cooldown-section {
@@ -326,7 +338,6 @@ a {
   border: 1px solid #646464;
   background-color: rgb(59, 59, 59);
   border-radius: 6px;
-  margin-right: 5px;
 
   &:focus-within {
     border: 1px solid #1b6dff;
@@ -444,7 +455,7 @@ a {
 
   .plan-selection {
     display: grid;
-    grid-template-columns: max-content max-content max-content;
+    grid-template-columns: max-content max-content;
 
     .boss-row {
       display: contents;
@@ -456,5 +467,448 @@ a {
         align-items: center;
       }
     }
+  }
+}
+
+.remove-btn {
+  display: inline-flex;
+  color: #f8b73b;
+  font-size: 20px;
+  transform: scale(1.2);
+  margin-left: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+#create-plan {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+
+  .left-pane {
+    display: flex;
+    gap: 10px;
+  }
+
+  .search-logs-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+#logs-pane {
+  display: flex;
+  flex-direction: column;
+
+  .logs-pane--title {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2px;
+
+    .info {
+      margin-left: 5px;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+
+      span {
+        font-size: 10px;
+        font-style: italic;
+      }
+    }
+  }
+
+  .wcl-logs--list {
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: max-content max-content max-content max-content max-content max-content;
+    row-gap: 10px;
+
+    background: #212121;
+    border: 1px solid gray;
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+  .wcl-logs--title {
+    text-align: left;
+    min-width: 55px;
+  }
+
+  .wcl-logs--option {
+    display: contents;
+    font-size: 14px;
+  }
+}
+
+#chart-legend {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  .chart-legend-series {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .series-line {
+    display: block;
+    width: 20px;
+    height: 2px;
+  }
+}
+
+#log-detail-pane {
+  min-width: 0;
+  width: 100%;
+
+  .log-detail-pane--title {
+    display: flex;
+    font-size: 12px;
+    align-items: center;
+    margin-bottom: 2px;
+    gap: 10px;
+  }
+
+  .log-detail-pane--buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+  }
+
+  .wcl-option-card {
+    gap: 10px;
+  }
+
+  .log-detail-pane--body {
+    background: #212121;
+    border: 1px solid gray;
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .log-detail-pane--charts {
+    display: flex;
+  }
+
+  .log-detail-pane--labels {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border-right: 0.5px solid white;
+  }
+
+  .log-detail-pane--scroll-wrapper {
+    position: relative;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+
+    &::-webkit-scrollbar-track {
+      border-left: none;
+      background-color: rgb(28, 28, 28);
+    }
+
+  }
+
+  .tooltip-line {
+    width: 1px;
+    background-color: white;
+    top: 0;
+    bottom: 0;
+    position: absolute;
+    height: calc(100% - 20px);
+  }
+
+  .raid-cds-grid {
+    display: grid;
+    font-size: 8px;
+  }
+
+  .raid-cds-grid--name {
+    font-size: 14px;
+    font-weight: bold;
+    padding-right: 10px;
+    text-align: right;
+  }
+
+  .raid-cds-grid--row-cell {
+    border-bottom: 1px solid #323232;
+  }
+
+  .raid-cds-grid--header-cell,
+  .raid-cds-grid--row-cell {
+    height: 24px;
+  }
+
+  .row-1 {
+    border-top: 1px solid #323232;
+  }
+
+  .raid-cds-grid--cast {
+    padding: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 1;
+  }
+}
+
+#healers-pane {
+  width: max-content;
+
+  .healers-pane--title {
+    margin-bottom: 2px;
+  }
+
+  .healers-pane--body {
+    background: #212121;
+    border: 1px solid gray;
+    padding: 10px;
+    border-radius: 4px;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .load-logs-btn {
+    align-self: flex-start;
+  }
+
+  .roster {
+    width: max-content;
+    min-height: 264px;
+  }
+}
+
+#boss-pane {
+  .boss-pane--title {
+    padding-top: 11px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+  }
+
+  .boss-pane--body {
+    background: #212121;
+    border: 1px solid gray;
+    padding: 10px;
+    border-radius: 4px;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .boss-pane--phases {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .boss-pane--phase {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .boss-pane--spells {
+    display: flex;
+    border: 1px solid gray;
+    border-radius: 4px;
+    padding: 10px 8px;
+    background: #141414;
+
+    .major-boss-abilities {
+      display: flex;
+      margin-right: 8px;
+      padding-bottom: 2px;
+
+      .boss-pane--spell {
+        margin: 0 4px;
+
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+    }
+
+    .minor-boss-abilities {
+      display: flex;
+
+      .boss-pane--spell {
+        opacity: 0.8;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+#boss-damage-chart {
+  position: relative;
+
+  .y.axis-grid .tick line {
+    color: #323232;
+  }
+
+  .y.axis-grid .tick:first-of-type line {
+    visibility: hidden;
+  }
+}
+
+#cd-usage-graph--labels {
+  display: flex;
+}
+
+// #boss-damage-chart,
+// #cd-usage-graph {
+//   &:after {
+//     content: "";
+//     display: block;
+//     position: absolute;
+//     right: -10px;
+//     width: 10px;
+//     height: 1px;
+//   }
+// }
+
+.primary-btn {
+  padding: 2px 5px;
+  font-size: 13px;
+  font-weight: bold;
+  background-color: darken(rgb(250 201 108), 10%);
+  border: 1px solid #403800;
+  border-radius: 4px;
+  color: black;
+  cursor: pointer;
+  position: relative;
+  min-width: 75px;
+
+  &--no-load {
+    min-width: unset;
+  }
+
+  &:hover {
+    background-color: rgb(250 201 108);
+  }
+
+  &.loading {
+    cursor: not-allowed;
+    background-color: darken(rgb(250 201 108), 30%);
+    color: transparent;
+
+    &::before {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      color: black;
+      height: 100%;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      content: 'Loading...';
+    }
+  }
+}
+
+.wcl-logs--link {
+  font-size: 12px;
+  text-decoration: underline;
+  color: rgb(112, 214, 248);
+}
+
+.wcl-logs--time {
+  font-size: 12px;
+  padding-left: 5px;
+}
+
+.wcl-logs--ilvl {
+  font-size: 12px;
+  padding-left: 3px;
+  padding-right: 5px;
+}
+
+.wcl-option-card {
+  font-size: 12px;
+  background-color: #141414;
+  padding: 5px 0;
+  padding-right: 10px;
+  border-bottom: 1px solid gray;
+  border-top: 1px solid gray;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 34px;
+}
+
+.wcl-option-card--left {
+  border-left: 1px solid gray;
+  padding-left: 5px;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+.wcl-option-card--right {
+  border-right: 1px solid gray;
+  padding-right: 5px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
+.roles {
+  display: flex;
+}
+
+.role-count {
+  display: flex;
+  align-items: center;
+}
+
+.role-icon {
+  width: 15px;
+  margin-left: 2px;
+  margin-right: 10px;
+  border: 1px solid #c38700;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #575757;
+}
+
+a[data-wh-icon-size],
+a[data-wowhead] {
+  pointer-events: none;
+
+  .iconsmall {
+    width: unset;
+    height: unset;
+    display: flex;
+    // pointer-events: all;
+  }
+
+  ins {
+    position: relative;
+    border: 1px solid black;
+    top: unset !important;
+    left: unset !important;
+  }
+
+  del {
+    display: none !important;
   }
 }

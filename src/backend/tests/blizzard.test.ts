@@ -24,7 +24,6 @@ describe('function: parsePhasesForEncounter', () => {
 
     test('igira', async () => {
         const result = parsePhasesForEncounter(igira);
-        console.log(JSON.stringify(result))
         assert.deepEqual(
             result,
             [
