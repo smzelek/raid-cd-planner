@@ -308,7 +308,7 @@ a.link {
 }
 
 #cds-drag-preview {
-  padding: 3px;
+  // padding: 3px;
 }
 
 .cheat-sheet {
@@ -741,7 +741,7 @@ a.link {
     border-top: 1px solid #323232;
   }
 
-  $row-height: 24px;
+  $row-height: 28px;
 
   .raid-cds-grid--name {
     font-size: 14px;
@@ -756,18 +756,57 @@ a.link {
     border-bottom: 1px solid #323232;
     height: $row-height;
   }
+}
 
-  .raid-cds-grid--cast {
-    padding: 3px;
-    font-size: 10px;
-    font-weight: bold;
-    white-space: nowrap;
-    z-index: 1;
+#ert-note-pane {
+  .ert-note-pane--body {
+    background: #212121;
+    border: 1px solid gray;
+    padding: 10px;
+    border-radius: 4px;
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ert-note-pane--phase-timings {
+    display: grid;
+    grid-template-columns: max-content auto;
+    gap: 5px;
+  }
+
+  .ert-note-pane--phase-name {
+    font-size: 12px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .ert-note-pane--phase-input {
+    width: 100%;
+  }
+
+  .ert-note-pane--action {
+    align-self: flex-end;
+  }
+
+  .ert-note-pane--contents {
+    white-space: pre;
+    font-size: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    flex-grow: 1;
+    background: #141414;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid gray;
+    border-radius: 4px;
+    max-height: 120px;
+    overflow: auto;
   }
 }
 
 #healers-pane {
-  width: max-content;
 
   .healers-pane--title {
     margin-bottom: 2px;
@@ -788,7 +827,6 @@ a.link {
   }
 
   .roster {
-    width: max-content;
     min-height: 264px;
   }
 }
@@ -934,6 +972,12 @@ a.link {
       content: 'Loading...';
     }
   }
+}
+
+.raid-cds-grid--cast {
+  padding: 3px;
+  z-index: 1;
+  border: 1px solid black;
 }
 
 .wcl-logs--link {

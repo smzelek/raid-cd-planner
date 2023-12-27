@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
 import { CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Roster, Spec, SpecOf, } from '../constants';
-import { displaySec, offsetRaidCDRows, CooldownEvent, addRaidCDProperties, getHealersInRoster, refreshTooltips, findInvalidCds } from '../utils';
+import { displaySec, offsetRaidCDRows, CooldownEvent, addRaidCDProperties, getHealersInRoster, refreshTooltips, findInvalidCds, webUuid } from '../utils';
 import { Encounter } from '../../types';
 import { BossAbilityDamageEvents, LogSearchResponse, ReportFightTimestamps } from '../../backend/services/wcl.service';
 import * as d3 from 'd3';
 import { Spell } from '../../backend/services/blizzard.service';
-import { DragOverlay, useDndMonitor, useDroppable } from '@dnd-kit/core';
+import { DragEndEvent, DragOverlay, DragStartEvent, useDndMonitor, useDraggable, useDroppable } from '@dnd-kit/core';
 import { DraggableSpell } from './RosterEditor';
+import type { Modifier } from '@dnd-kit/core';
+import { getEventCoordinates } from '@dnd-kit/utilities';
 
 const MARGIN_TOP = 20;
 const COLORS = d3.schemeCategory10;
@@ -22,6 +24,31 @@ export type PlannedPlayerRaidCDs = {
 };
 export type PlannedRaidCDs = PlannedPlayerRaidCDs[];
 
+export const snapLeftToCursor: Modifier = ({
+    activatorEvent,
+    draggingNodeRect,
+    transform,
+}) => {
+    if (draggingNodeRect && activatorEvent) {
+        const activatorCoordinates = getEventCoordinates(activatorEvent);
+
+        if (!activatorCoordinates) {
+            return transform;
+        }
+
+        const offsetX = activatorCoordinates.x - draggingNodeRect.left;
+        const offsetY = activatorCoordinates.y - draggingNodeRect.top;
+
+        return {
+            ...transform,
+            x: transform.x + offsetX, //- draggingNodeRect.width,
+            y: transform.y + offsetY - draggingNodeRect.height / 2,
+        };
+    }
+
+    return transform;
+};
+
 type GridData = {
     data: PlannedRaidCDs;
     fightSec: number;
@@ -30,13 +57,14 @@ export const FightBreakdown = (props: {
     boss: Encounter,
     roster: Roster,
     chartScale: number,
-    setRaidCDs: (_: PlannedRaidCDs) => void,
-    setChartScale: (_: number) => void,
     raidCDs: PlannedRaidCDs,
     timestamps: ReportFightTimestamps,
     bossDamage: BossAbilityDamageEvents,
+    mode: 'view' | 'edit',
+    setRaidCDs: (_: PlannedRaidCDs) => void,
+    setChartScale: (_: number) => void,
 }) => {
-    const { boss, roster, raidCDs, timestamps, bossDamage, chartScale, setChartScale, setRaidCDs } = props;
+    const { boss, roster, raidCDs, timestamps, bossDamage, chartScale, mode, setChartScale, setRaidCDs } = props;
     const fightSec = Math.ceil(timestamps.endTime - timestamps.startTime);
     const [tooltipLineSec, setTooltipLineSec] = useState<number | null>(null);
     const [scrollOffset, setScrollOffset] = useState<number>(0);
@@ -163,53 +191,91 @@ export const FightBreakdown = (props: {
         id: 'droppable',
     });
 
-    useDndMonitor({
-        onDragStart: (event) => {
-            const dragData = event.active.data.current as DraggableSpell;
-            setDraggedSpell(dragData);
+    const handleDragStart = (event: DragStartEvent) => {
+        const dragData = event.active.data.current as DraggableSpell;
+        setDraggedSpell(dragData);
 
-            setTimeout(() => {
-                refreshTooltips();
-            }, 10);
-        },
-        onDragEnd: (event) => {
-            if (isOver && tooltipLineSec) {
-                const payload = event.active.data.current as DraggableSpell;
-                let update: PlannedRaidCDs = [...raidCDs];
+        setTimeout(() => {
+            refreshTooltips();
+        }, 10);
+    }
 
-                // Add new players to the raidCDs array
-                if (raidCDs.every(p => p.playerId !== payload.playerId)) {
-                    const player = roster.find(r => r.playerId === payload.playerId)!;
-                    update = [...update, {
-                        class: player.class,
-                        spec: player.spec,
-                        playerId: player.playerId,
-                        casts: [],
-                    }]
-                }
+    const handleDragEnd = (event: DragEndEvent) => {
+        if (!isOver || !tooltipLineSec) {
+            return;
+        }
 
-                // Add new casts to the raidCDs array
-                update = update.map(rc => {
-                    if (rc.playerId !== payload.playerId) {
-                        return rc;
-                    }
-                    return {
-                        ...rc,
-                        casts: [
-                            ...rc.casts,
-                            ...addRaidCDProperties([{ castId: payload.newId, spellId: payload.spellId, timestamp: tooltipLineSec }])
-                        ].sort((c1, c2) => c1.timestamp - c2.timestamp)
-                    }
-                });
+        const payload = event.active.data.current as DraggableSpell;
 
-                setRaidCDs(update);
+        if (payload.type === 'NEW') {
+            let update: PlannedRaidCDs = [...raidCDs];
+
+            // Add new players to the raidCDs array
+            if (raidCDs.every(p => p.playerId !== payload.playerId)) {
+                const player = roster.find(r => r.playerId === payload.playerId)!;
+                update = [...update, {
+                    class: player.class,
+                    spec: player.spec,
+                    playerId: player.playerId,
+                    casts: [],
+                }]
             }
-        },
-    })
+
+            // Add new casts to the raidCDs array
+            update = update.map(rc => {
+                if (rc.playerId !== payload.playerId) {
+                    return rc;
+                }
+                return {
+                    ...rc,
+                    casts: [
+                        ...rc.casts,
+                        ...addRaidCDProperties([{ castId: payload.castId, spellId: payload.spellId, timestamp: tooltipLineSec }])
+                    ].sort((c1, c2) => c1.timestamp - c2.timestamp)
+                }
+            });
+
+            setRaidCDs(update);
+        }
+
+        if (payload.type === 'EXISTING') {
+            let update: PlannedRaidCDs = [...raidCDs];
+
+            // Remove old cast and add new cast to the raidCDs array
+            update = update.map(rc => {
+                if (rc.playerId !== payload.playerId) {
+                    return rc;
+                }
+                return {
+                    ...rc,
+                    casts: [
+                        ...rc.casts.filter(c => c.castId !== payload.castId),
+                        ...addRaidCDProperties([{ castId: payload.castId, spellId: payload.spellId, timestamp: tooltipLineSec }])
+                    ].sort((c1, c2) => c1.timestamp - c2.timestamp)
+                }
+            });
+
+            setRaidCDs(update);
+        }
+    };
+
+    useDndMonitor({
+        onDragStart: handleDragStart,
+        onDragEnd: handleDragEnd,
+    });
+
+    const handleRemoveCast = (castId: string) => {
+        const update = raidCDs.map(rcd => ({
+            ...rcd,
+            casts: rcd.casts.filter(c => c.castId !== castId)
+        }));
+        setRaidCDs(update);
+    };
 
     return (
         <div id="fight-breakdown">
             <DragOverlay
+                modifiers={[snapLeftToCursor]}
                 dropAnimation={null}
                 style={{
                     pointerEvents: 'none'
@@ -218,10 +284,10 @@ export const FightBreakdown = (props: {
                 {draggedSpell && (
                     <div
                         id="cds-drag-preview"
+                        className='raid-cds-grid--cast'
                         style={{
                             width: `${chartScale * draggedSpell.duration}px`,
                             background: CLASS_COLORS[draggedSpell.playerClass],
-                            // pointerEvents: 'none',
                         }}
                     >
                         <a
@@ -287,26 +353,31 @@ export const FightBreakdown = (props: {
                             {chartMode === 'stacked' && <AreaChart chartData={chartData} chartScale={chartScale} setTooltipLineSec={setTooltipLineSec} />}
                             {chartMode === 'line' && <LineChart chartData={chartData} chartScale={chartScale} setTooltipLineSec={setTooltipLineSec} />}
                         </>
-                    }, [chartData, chartScale, setTooltipLineSec])}
+                    }, [chartMode, chartData, chartScale, setTooltipLineSec])}
                     <div ref={setNodeRef}>
                         {useMemo(() => (
                             <CDUsageGraph
+                                mode={mode}
                                 gridData={gridData}
                                 chartScale={chartScale}
-                                setTooltipLineSec={setTooltipLineSec} />
+                                setTooltipLineSec={setTooltipLineSec}
+                                onRemoveCast={handleRemoveCast}
+                            />
                         ), [gridData, chartScale, setTooltipLineSec,])}
                     </div>
                 </div>
             </div>
             <div className='fight-breakdown-pane--errors'>
                 {raidCDs.map(rcd => {
+                    const player = roster.find(r => r.playerId === rcd.playerId);
+                    if (!player) {
+                        return null;
+                    }
+
                     const errorCasts = findInvalidCds(rcd);
                     if (errorCasts.length === 0) {
                         return null;
                     }
-
-                    const player = roster.find(r => r.playerId === rcd.playerId)!;
-                    console.log(player.name, errorCasts)
 
                     return (
                         <div className='fight-breakdown-pane--error'>
@@ -461,7 +532,7 @@ const LineChart = ({
             .attr('d', (d) => line(d[1]))
             .style('stroke', (d, i) => colors(d[0].toString()))
             .style('stroke-width', 2)
-            .style('fill', 'transparent');
+            .style('fill', '#0000001c');
 
         svg
             .append('g')
@@ -546,6 +617,7 @@ const AreaChart = ({
             .selectAll()
             .data(stackSeries)
             .join("path")
+            .attr("stroke", "#0000003f")
             .attr("fill", d => colors(d.key))
             .attr("d", area as any)
             .append("title")
@@ -606,11 +678,13 @@ const CDUsageGraphLabels = ({
 };
 
 const CDUsageGraph = (props: {
+    mode: 'view' | 'edit',
     gridData: GridData,
     chartScale: number,
     setTooltipLineSec: (_: number) => void,
+    onRemoveCast: (_: string) => void,
 }) => {
-    const { gridData, chartScale, setTooltipLineSec } = props;
+    const { gridData, chartScale, mode, setTooltipLineSec, onRemoveCast } = props;
 
     useEffect(() => {
         refreshTooltips();
@@ -638,28 +712,16 @@ const CDUsageGraph = (props: {
                         }
 
                         return (
-                            <div
-                                key={`cast-${x}`}
-                                onMouseMove={(e) => {
-                                    setTooltipLineSec(x + 1);
-                                    e.stopPropagation()
-                                }}
-                                className={`raid-cds-grid--row-cell raid-cds-grid--cast`}
-                                title={cast.ability}
-                                style={{
-                                    background: CLASS_COLORS[h.class],
-                                    color: CLASS_OFFSET_COLORS[h.class],
-                                    gridRow: y + 1,
-                                    gridColumnStart: x + 2,
-                                    gridColumnEnd: x + 2 + cast.duration,
-                                }}
-                            >
-                                <a
-                                    onClick={() => { }}
-                                    data-wh-icon-size='small'
-                                    href={`https://www.wowhead.com/spell=${cast.spellId}`}>
-                                </a>
-                            </div>
+                            <DraggableGridCast
+                                row={y}
+                                column={x}
+                                key={cast.castId}
+                                player={h}
+                                cast={cast}
+                                disabled={mode === 'view'}
+                                setTooltipLineSec={setTooltipLineSec}
+                                onRemove={() => onRemoveCast(cast.castId)}
+                            />
                         );
                     });
                 })}
@@ -681,3 +743,69 @@ const CDUsageGraph = (props: {
         </div>
     )
 };
+
+const DraggableGridCast = (props: {
+    row: number,
+    column: number,
+    cast: CooldownEvent,
+    player: PlannedPlayerRaidCDs,
+    disabled: boolean,
+    setTooltipLineSec: (_: number) => void,
+    onRemove: () => void,
+}) => {
+    const { row, column, cast, player, disabled, setTooltipLineSec, onRemove } = props;
+
+    const dragId = useMemo(() => {
+        return webUuid();
+    }, []);
+
+    const dragData = (): DraggableSpell => ({
+        type: 'EXISTING',
+        spellId: cast.spellId,
+        duration: cast.duration,
+        playerClass: player.class,
+        playerId: player.playerId,
+        castId: cast.castId,
+    });
+
+    const { listeners, setNodeRef, isDragging } = useDraggable({
+        id: dragId,
+        data: dragData(),
+        disabled,
+    });
+
+    return (
+        <div
+            ref={setNodeRef}
+            onClick={(e) => {
+                if (!e.shiftKey || disabled) {
+                    return;
+                }
+
+                onRemove();
+            }}
+            {...listeners}
+            onMouseMove={(e) => {
+                setTooltipLineSec(column + 1);
+                e.stopPropagation()
+            }}
+            className={`raid-cds-grid--row-cell raid-cds-grid--cast`}
+            title={cast.ability}
+            style={{
+                background: CLASS_COLORS[player.class],
+                color: CLASS_OFFSET_COLORS[player.class],
+                gridRow: row + 1,
+                gridColumnStart: column + 2,
+                gridColumnEnd: column + 2 + cast.duration,
+                visibility: isDragging ? 'hidden' : 'visible'
+            }}
+        >
+            <a
+                onClick={() => { }}
+                data-wh-icon-size='small'
+                href={`https://www.wowhead.com/spell=${cast.spellId}`}>
+            </a>
+        </div>
+    )
+};
+

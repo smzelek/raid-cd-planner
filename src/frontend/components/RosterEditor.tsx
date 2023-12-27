@@ -2,18 +2,18 @@ import Select from "./Select/Select";
 import { CLASS_COLORS, Class, Cooldown, HealerSpecs, NonHealerSpecs, RosterMember, SPECS_WITH_CDS, SpecMatchesClass, cooldownsBySpec } from "../constants";
 import React, { useEffect, useMemo, useState } from "react";
 import { CooldownEvent, PlayerCooldownCast, getHealersInRoster, getNonHealersInRoster, refreshTooltips, webUuid } from "../utils";
+import { useDraggable } from "@dnd-kit/core";
 
 type RosterKind = 'healers' | 'raid';
 
 export default function RosterEditor(props: {
     mode: 'healers' | 'split',
     entryMode: 'edit' | 'note',
-    chartScale: number,
     roster: RosterMember[],
     disabled: boolean,
     setRoster: (val: RosterMember[]) => void,
 }) {
-    const { roster, mode, entryMode, setRoster, disabled, chartScale } = props;
+    const { roster, mode, entryMode, setRoster, disabled } = props;
     const healers = useMemo(() => getHealersInRoster(roster), [roster]);
     const raiders = useMemo(() => getNonHealersInRoster(roster), [roster]);
 
@@ -33,7 +33,6 @@ export default function RosterEditor(props: {
                     )}
                     {healers.map((member, i) => (
                         <RosterMemberEditor
-                            chartScale={chartScale}
                             key={member.playerId}
                             i={i}
                             entryMode={entryMode}
@@ -62,7 +61,6 @@ export default function RosterEditor(props: {
                         <RosterMemberEditor
                             key={member.playerId}
                             i={i}
-                            chartScale={chartScale}
                             entryMode={entryMode}
                             disabled={disabled}
                             roster={raiders}
@@ -106,12 +104,11 @@ const RosterMemberEditor = (props: {
     disabled: boolean,
     entryMode: 'edit' | 'note',
     i: number,
-    chartScale: number,
     roster: RosterMember[],
     member: RosterMember,
     setRoster: (val: RosterMember[]) => void,
 }) => {
-    const { disabled, i, member, roster, chartScale, entryMode, setRoster } = props;
+    const { disabled, i, member, roster, entryMode, setRoster } = props;
     const [value, setValue] = useState(member.name);
     const cds = useMemo(() => {
         return cooldownsBySpec(member as SpecMatchesClass);
@@ -147,7 +144,6 @@ const RosterMemberEditor = (props: {
                 {cds.map(cd => (
                     <DraggableAbilityIcon
                         key={cd.spellId}
-                        chartScale={chartScale}
                         spell={cd}
                         playerId={member.playerId}
                         playerClass={member.class}
@@ -158,58 +154,56 @@ const RosterMemberEditor = (props: {
     </div>
 };
 
-
-import { useDraggable } from "@dnd-kit/core";
-
 export type DraggableSpell = {
-    newId: string;
+    type: 'NEW' | 'EXISTING',
+    castId: string;
     spellId: number;
     playerClass: Class;
     playerId: string;
     duration: number;
 }
 const DraggableAbilityIcon = (props: {
-    chartScale: number,
     spell: Cooldown<Class>,
     playerId: string,
     playerClass: Class,
 }) => {
-    const { spell, chartScale, playerId, playerClass } = props;
+    const { spell, playerId, playerClass } = props;
     const [hideTooltip, setHideTooltip] = useState(false);
-    // const setIsDragging
 
     const dragId = useMemo(() => {
         return webUuid();
     }, [])
 
     const dragData = (): DraggableSpell => ({
+        type: 'NEW',
         spellId: spell.spellId,
         duration: spell.duration,
         playerClass,
         playerId,
-        newId: webUuid(),
+        castId: webUuid(),
     });
 
-    const { attributes, listeners, setNodeRef, transform, isDragging, active } = useDraggable({
+    const { attributes, listeners, setNodeRef } = useDraggable({
         id: dragId,
         data: dragData()
     });
 
     return (
-        <div >
-            <div ref={setNodeRef} {...listeners} {...attributes}>
-                <a
-                    onDragStart={(e) => {
-                        setHideTooltip(true);
-                    }}
-                    onDragEnd={(e) => {
-                        setHideTooltip(false);
-                    }}
-                    style={{ pointerEvents: hideTooltip ? 'none' : 'all' }}
-                    data-wh-icon-size="small"
-                    href={`https://www.wowhead.com/spell=${spell.spellId}`}
-                />
-            </div>
+        <div
+            ref={setNodeRef}
+            {...listeners}
+        >
+            <a
+                onDragStart={(e) => {
+                    setHideTooltip(true);
+                }}
+                onDragEnd={(e) => {
+                    setHideTooltip(false);
+                }}
+                style={{ pointerEvents: hideTooltip ? 'none' : 'all' }}
+                data-wh-icon-size="small"
+                href={`https://www.wowhead.com/spell=${spell.spellId}`}
+            />
         </div>
     )
-}
+};

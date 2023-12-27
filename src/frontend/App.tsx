@@ -47,12 +47,22 @@ export default function App() {
       document.head.appendChild(scriptTag)
       effectRan.current = true
     }
-  }, [])
+  }, []);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  )
 
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <DndContext>
+        <DndContext
+          sensors={sensors}
+        >
           <span style={{ display: 'none' }}>
             {/* {process.env.COMMIT_HASH} */}
           </span>

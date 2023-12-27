@@ -7,6 +7,7 @@ import { Encounter } from '../../types';
 import { IMPORTANT_CURRENT_RAID_SPELLS } from '../../utils';
 import { LogSearchResponse } from '../../backend/services/wcl.service';
 import { FightBreakdown, PlannedPlayerRaidCDs, PlannedRaidCDs } from '../components/FightBreakdown';
+import RTNotePreview from '../components/RTNotePreview';
 
 
 export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roster: Roster, setRoster: (r: Roster) => void; }): React.JSX.Element => {
@@ -51,7 +52,6 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
                                 roster={roster}
                                 disabled={isLoadingLogDetailsData || view === 'analyze-log'}
                                 setRoster={setRoster}
-                                chartScale={chartScale}
                             />
                             {view === 'search-logs' && !isLoadingLogDetailsData && (
                                 <button
@@ -93,11 +93,18 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
                                         setView('create-note');
                                     }}
                                 >
-                                    Copy Note
+                                    Edit Note
                                 </button>
                             )}
                         </div>
                     </div>
+                    {view === 'create-note' && rosterCDs && (
+                        <RTNotePreview
+                            boss={boss}
+                            roster={roster}
+                            rosterCDs={rosterCDs}
+                        />
+                    )}
                 </div>
             </div>
             {(loadedLogSearchData && view === 'search-logs') && (
@@ -177,14 +184,15 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
                         </div>
                     </div>
                     <FightBreakdown
+                        mode={'view'}
                         chartScale={chartScale}
-                        setChartScale={setChartScale}
                         boss={boss}
                         roster={logRoster}
                         raidCDs={logRaidCDs}
-                        setRaidCDs={() => { }}
                         timestamps={logDetailsData.timestamps}
                         bossDamage={logDetailsData.bossEvents}
+                        setRaidCDs={() => { }}
+                        setChartScale={setChartScale}
                     />
                 </div>
             )}
@@ -194,14 +202,15 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
                         <h3>New Note</h3>
                     </div>
                     <FightBreakdown
+                        mode={'edit'}
                         chartScale={chartScale}
-                        setChartScale={setChartScale}
                         boss={boss}
                         roster={roster}
                         raidCDs={rosterCDs}
-                        setRaidCDs={setRosterCDs}
                         timestamps={logDetailsData.timestamps}
                         bossDamage={logDetailsData.bossEvents}
+                        setChartScale={setChartScale}
+                        setRaidCDs={setRosterCDs}
                     />
                 </div>
             )}
