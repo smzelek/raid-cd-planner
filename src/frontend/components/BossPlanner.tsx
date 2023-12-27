@@ -1,5 +1,5 @@
-import Select from "../Select/Select";
-import { BOSSES, BOSS_ABILITIES, BOSS_PHASES, BossAbility, BossPlan } from "../../constants";
+import Select from "./Select/Select";
+import { BOSSES, BOSS_ABILITIES, BOSS_PHASES, BossAbility, BossPlan } from "../constants";
 import React, { Fragment, useEffect, useState } from "react";
 
 export default function BossPlanner(props: {

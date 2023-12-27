@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { CLASS_COLORS, RosterMember, SPECS_WITH_CDS, SpecChoices, cooldownsBySpec } from "../../constants";
-import { cooldownTimeDisplay } from "../../utils";
+import { CLASS_COLORS, RosterMember, SPECS_WITH_CDS, SpecChoices, cooldownsBySpec } from "../constants";
+import { cooldownTimeDisplay } from "../utils";
 
 export default function CheatSheet(props: { roster: RosterMember[] }) {
     const { roster } = props;
@@ -8,7 +8,7 @@ export default function CheatSheet(props: { roster: RosterMember[] }) {
     const [collapsed, setCollapsed] = useState(true);
 
     useEffect(() => {
-        (window as any)?.WH?.Tooltips && !collapsed && (window as any).WH.Tooltips.refreshLinks()
+        refreshTooltips()
     }, [collapsed])
 
     const rosterHasSpec = (c: SpecChoices) => roster.some(r => r.class === c.class && (r.spec === c.spec || c.spec === "ALL"))

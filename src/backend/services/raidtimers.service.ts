@@ -14,8 +14,12 @@ export class RaidTimersApi {
 
     async loadCurrentRaidEncounters(): Promise<CurrentRaid> {
         const blizzRaid = await this.blizzardApi.loadCurrentRaid();
-        const wclRaids = (await this.warcraftLogsApi.getZones()).result!;
-        const wclRaid = wclRaids.find(r => r.name === blizzRaid.name)!;
+        const wclRaids = await this.warcraftLogsApi.getZones();
+        if (wclRaids.error) {
+            throw wclRaids.error;
+        }
+
+        const wclRaid = wclRaids.result!.find(r => r.name === blizzRaid.name)!;
 
         const encounterIds = blizzRaid.encounters.map(e => e.id);
         const encounters = await Promise.all(encounterIds.map(id => this.blizzardApi.loadJournalEncounter({ encounterId: id })))

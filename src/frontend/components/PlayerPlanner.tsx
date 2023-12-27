@@ -1,6 +1,6 @@
-import Select from "../Select/Select";
-import { CLASS_COLORS, Class, Cooldown, RaidCDErrors, SPECS_WITH_CDS, UserPlayerPlan, cooldownsBySpec } from "../../constants";
-import { toSec } from "../../utils";
+import Select from "./Select/Select";
+import { CLASS_COLORS, Class, Cooldown, RaidCDErrors, SPECS_WITH_CDS, UserPlayerPlan, cooldownsBySpec } from "../constants";
+import { toSec, webUuid } from "../utils";
 import React, { useState } from "react";
 
 export default function PlayerPlanner(props: {
@@ -11,15 +11,7 @@ export default function PlayerPlanner(props: {
     const [plannedAbilityUseErrors, setPlannedAbilityUseErrors] = useState<RaidCDErrors>({});
 
     const validTimesRegex = new RegExp(/^(([\d]+:[\d]{2})(\s|$))+$/);
-    const validCds = (cd: Cooldown<Class>, times: string[], cooldownOverride: number) => {
-        const timesSec = times.map(toSec);
-        return timesSec.every((t, i) => {
-            if (i === 0) {
-                return true;
-            }
-            return timesSec[i - 1] + (cooldownOverride || cd.cooldown) <= t
-        })
-    };
+
 
     return (
         <div className="flex-scroll-wrapper roster">
@@ -42,7 +34,7 @@ export default function PlayerPlanner(props: {
                             setPlayerPlan({
                                 ...playerPlan,
                                 roster: [
-                                    { name: `${defaultName} ${suffix}`, playerId: crypto.randomUUID().split('-')[0], ...specProperties },
+                                    { name: `${defaultName} ${suffix}`, playerId: webUuid(), ...specProperties },
                                     ...playerPlan.roster
                                 ]
                             })

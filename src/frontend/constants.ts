@@ -137,6 +137,8 @@ export const WCLClassIds: Ids = {
 export type SpecOf<C extends Class> = _SPECS[C][number];
 type SpecOfClassOrAnySpec<C extends Class> = _SPECS[C][number] | 'ALL';
 
+export type Spec = SpecOf<Class>;
+
 export type Cooldown<T extends Class> = {
     ability: string;
     spec: SpecOfClassOrAnySpec<T>;
@@ -154,24 +156,15 @@ export type BossAbilities = Record<Bosses, readonly BossAbility[]>;
 
 type SpecClassMapper<T extends Class> = T extends Class ? { [key in T]: { spec: SpecOfClassOrAnySpec<T> } }[T] & { class: T } : never;
 export type SpecMatchesClass = SpecClassMapper<Class>;
-export type SpecChoices = SpecMatchesClass & {
+export type SpecChoices = {
+    class: Class;
+    spec: Spec;
     display: string;
 };
 
-export const HealerSpecs =
-    [
-        { class: 'Paladin', spec: 'Holy' },
-        { class: 'Priest', spec: 'Discipline' },
-        { class: 'Priest', spec: 'Holy' },
-        { class: 'Shaman', spec: 'Restoration' },
-        { class: 'Monk', spec: 'Mistweaver' },
-        { class: 'Druid', spec: 'Restoration' },
-        { class: 'Evoker', spec: 'Preservation' }
-    ]
-
-export type HealerSpec = (typeof HealerSpecs)[number];
-
-export type RosterMember = SpecMatchesClass & {
+export type RosterMember = {
+    class: Class;
+    spec: Spec;
     name: string;
     playerId: string;
 };
@@ -611,6 +604,21 @@ export const SPECS_WITH_CDS = Object.entries(COOLDOWNS)
         return Array.from(new Map(specs.map(s => [s.display, s])).values())
     })
     .flat(1) as SpecChoices[];
+
+
+export const HealerSpecs = [
+    { class: 'Paladin', spec: 'Holy' },
+    { class: 'Priest', spec: 'Discipline' },
+    { class: 'Priest', spec: 'Holy' },
+    { class: 'Shaman', spec: 'Restoration' },
+    { class: 'Monk', spec: 'Mistweaver' },
+    { class: 'Druid', spec: 'Restoration' },
+    { class: 'Evoker', spec: 'Preservation' }
+].map(s => ({ ...s, display: `${s.spec} ${s.class}` })) as SpecChoices[];
+
+export const NonHealerSpecs = SPECS_WITH_CDS.filter(s => {
+    return !HealerSpecs.some(hs => hs.class === s.class && hs.spec === s.spec);
+});
 
 export const cooldownsBySpec = (s: SpecMatchesClass) => {
     return (COOLDOWNS[s.class] as Cooldown<Class>[]).filter((cd) => cd.spec === "ALL" || cd.spec === s.spec)

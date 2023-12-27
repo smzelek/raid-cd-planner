@@ -4,9 +4,18 @@ import {
   createHashRouter,
   RouterProvider,
 } from "react-router-dom";
-import { PlanDashboard } from './pages/CreatePlan';
+import { PlanDashboard } from './pages/PlanDashboard';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import './global.scss';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'ion-icon': any;
+    }
+  }
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,24 +52,26 @@ export default function App() {
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <span style={{ display: 'none' }}>
-          {/* {process.env.COMMIT_HASH} */}
-        </span>
-        <div className='wrapper'>
-          <header className='header'>
-            <h1 className='app-title-bar'>
-              raidtimers
-              {/* <div className='app-title-actions'>
+        <DndContext>
+          <span style={{ display: 'none' }}>
+            {/* {process.env.COMMIT_HASH} */}
+          </span>
+          <div className='wrapper'>
+            <header className='header'>
+              <h1 className='app-title-bar'>
+                raidtimers
+                {/* <div className='app-title-actions'>
                 <CopyButton onClick={exportNote}>Export to RT Note</CopyButton>
                 <CopyButton onClick={exportToSavedString}>Export to Profile String</CopyButton>
                 <button onClick={importFromSavedString}>Import from Profile String</button>
               </div> */}
-            </h1>
-          </header>
-          <main className='main'>
-            <RouterProvider router={router} />
-          </main>
-        </div>
+              </h1>
+            </header>
+            <main className='main'>
+              <RouterProvider router={router} />
+            </main>
+          </div>
+        </DndContext>
       </QueryClientProvider>
     </>
   );

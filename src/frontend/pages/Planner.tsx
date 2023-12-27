@@ -4,11 +4,11 @@ import {
     BossTimelineData, PlayerTimelineData, UserPlayerPlan, BossPlan, SavedProfile, PlayerId, Cooldown, Class
 } from '../constants';
 import { toSec, offsetEntries, displaySec } from '../utils';
-import CheatSheet from '../components/CheatSheet/CheatSheet';
-import RaidPlanner from '../components/PlayerPlanner/PlayerPlanner';
-import Timeline from '../components/Timeline/Timeline';
-import BossPlanner from '../components/BossPlanner/BossPlanner';
-import CopyButton from '../components/CopyButton/CopyButton';
+import CheatSheet from '../components/CheatSheet';
+import RaidPlanner from '../components/PlayerPlanner';
+import Timeline from '../components/Timeline';
+import BossPlanner from '../components/BossPlanner';
+import CopyButton from '../components/CopyButton';
 
 export default function Planner() {
     const [userBossPlan, setUserBossPlan] = useState<BossPlan>({

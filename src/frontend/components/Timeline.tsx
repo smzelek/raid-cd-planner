@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
-import { BossTimelineData, CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Cooldown, PlayerTimelineData } from "../../constants";
-import { displaySec, toSec } from "../../utils";
+import { BossTimelineData, CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Cooldown, PlayerTimelineData } from "../constants";
+import { displaySec, toSec } from "../utils";
 
 export default function Timeline(props: { bossTimeline: BossTimelineData, playerTimeline: PlayerTimelineData }) {
     const { bossTimeline, playerTimeline } = props;

@@ -1,5 +1,5 @@
 import { Phases, Spell } from "./backend/services/blizzard.service";
-import { HealerSpec } from "./frontend/constants";
+import { Class, Spec } from "./frontend/constants";
 import { CURRENT_RAID_ENCOUNTER_IDS } from "./utils";
 
 export type dash_case_string = string;
@@ -36,5 +36,9 @@ export type CurrentRaid = {
     bosses: Encounter[];
 }
 
-export type HealerComp = Array<HealerSpec & { count: number; }>;
+export type HealerComp = Array<{
+    class: Class;
+    spec: Spec;
+    count: number;
+}>;
 

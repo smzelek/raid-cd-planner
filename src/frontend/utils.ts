@@ -1,7 +1,8 @@
 import { format, fromUnixTime } from "date-fns";
 import { HealerComp } from "../types";
-import { Class, Cooldown, FLAT_COOLDOWNS, HealerSpecs, Roster, SpecMatchesClass } from "./constants";
+import { Class, Cooldown, FLAT_COOLDOWNS, HealerSpecs, Roster, Spec, SpecChoices, SpecMatchesClass, SpecOf } from "./constants";
 import { RaidCDUsage } from "../backend/services/wcl.service";
+import { PlannedPlayerRaidCDs } from "./components/FightBreakdown";
 
 export const cooldownTimeDisplay = (sec: number) => {
     const _mins = sec / 60;
@@ -43,7 +44,8 @@ export const offsetEntries = <T extends { offset: number, time: number; duration
 };
 
 export const rosterToHealerComp = (roster: Roster): HealerComp => {
-    const init: HealerComp = HealerSpecs.map(hs => ({ class: hs.class, spec: hs.spec, count: 0 }))
+    const init = (HealerSpecs).map((hs) => ({ class: hs.class, spec: hs.spec, count: 0 }));
+
     return roster
         .reduce((acc, cur) => {
             const existing = acc.findIndex(m => m.class === cur.class && m.spec === cur.spec);
@@ -56,7 +58,18 @@ export const formatLogTime = (time: number): string => {
     return format(fromUnixTime(Math.round(time / 1000)), 'yyyy, MMM do');
 }
 
-export type CooldownEvent = Cooldown<Class> & {
+export type CooldownCast = {
+    duration: number;
+    cooldown: number;
+    spellId: number;
+    castId: string;
+};
+
+export type PlayerCooldownCast = CooldownCast & {
+    playerId: string;
+}
+export type CooldownEvent = CooldownCast & {
+    ability: string;
     timestamp: number;
 };
 type OffsetCooldownEvent = CooldownEvent & {
@@ -77,22 +90,65 @@ const offsetAbilities = (rawEvents: CooldownEvent[]): OffsetCooldownEvent[] => {
     });
 };
 
-export const toGraphable = (rawEvents: RaidCDUsage['casts']): CooldownEvent[][] => {
-    const withDurations: CooldownEvent[] = rawEvents.map(c => {
-        const cd = FLAT_COOLDOWNS.find(fcd => fcd.spellId === c.spellId);
+export const getHealersInRoster = <T extends ({ class: Class; spec: Spec; }[]),>(roster: T): T => {
+    return roster.filter(rm => HealerSpecs.some(h => h.class === rm.class && h.spec === rm.spec)) as unknown as T;
+}
+
+export const getNonHealersInRoster = <T extends ({ class: Class; spec: Spec; }[]),>(roster: T): T => {
+    return roster.filter(rm => !HealerSpecs.some(h => h.class === rm.class && h.spec === rm.spec)) as unknown as T;
+}
+
+export const addRaidCDProperties = (rawEvents: RaidCDUsage['casts']): CooldownEvent[] => {
+    return rawEvents.map(c => {
+        const cd = FLAT_COOLDOWNS.find(fcd => fcd.spellId === c.spellId)!;
         return {
-            ...cd as Cooldown<Class>,
+            spellId: cd.spellId,
+            duration: cd.duration,
+            ability: cd.ability,
+            cooldown: cd.cooldown,
+            castId: c.castId,
             timestamp: c.timestamp,
         }
     });
+};
 
-    const withOffsets = offsetAbilities(withDurations);
+export const offsetRaidCDRows = (rawEvents: CooldownEvent[]): CooldownEvent[][] => {
+    const withOffsets = offsetAbilities(rawEvents);
     const splitOffsets = withOffsets.reduce((acc, cur) => {
         acc[cur.offset] = acc[cur.offset] ?? [];
         const { offset, ...rest } = cur;
         acc[cur.offset].push(rest);
         return acc;
-    }, {} as Record<number, CooldownEvent[]>);
+    }, {
+        0: [],
+    } as Record<number, CooldownEvent[]>);
 
     return Object.values(splitOffsets);
 }
+
+export const refreshTooltips = () => {
+    (window as any)?.WH?.Tooltips && (window as any).WH.Tooltips.refreshLinks()
+};
+
+export const webUuid = () => {
+    return crypto.randomUUID().split('-')[0]
+};
+
+export const findInvalidCds = (cds: PlannedPlayerRaidCDs) => {
+    const lastAbilityUse: Record<number, number> = {};
+
+    return cds.casts.reduce((errs, cd) => {
+        const lastUse = lastAbilityUse[cd.spellId];
+
+        if (lastUse === undefined) {
+            lastAbilityUse[cd.spellId] = cd.timestamp;
+            return errs;
+        }
+
+        if (cd.timestamp < lastUse + cd.cooldown) {
+            return [...errs, cd];
+        }
+
+        return errs;
+    }, [] as CooldownEvent[]);
+};

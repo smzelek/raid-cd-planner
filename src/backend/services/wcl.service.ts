@@ -1,10 +1,11 @@
 import { WARCRAFT_LOGS_API_V1_KEY, WARCRAFT_LOGS_API_V2_ACCESS_TOKEN, WARCRAFT_LOGS_API_V2_CLIENT_KEY, WARCRAFT_LOGS_API_V2_SECRET_KEY } from '../env';
 import { WCL_ROUTES } from '../routes';
 import { CACHE_KEYS, SimpleCache } from '../cache';
-import { COOLDOWNS, Class, ClassList, HealerSpec, SpecOf, WCLClassIds } from '../../frontend/constants';
+import { COOLDOWNS, Class, ClassList, Spec, SpecOf, WCLClassIds } from '../../frontend/constants';
 import { HealerComp } from '../../types';
 import { CURRENT_RAID_ENCOUNTER_IDS, IMPORTANT_CURRENT_RAID_SPELLS, logFunction } from '../../utils';
 import { minutesToMilliseconds } from 'date-fns';
+import { nodeUuid } from '../utils';
 
 export type BossAbilityDamageEvents = {
     ability: string;
@@ -16,8 +17,9 @@ export type BossAbilityDamageEvents = {
 export type RaidCDUsage = {
     name: string;
     class: Class;
-    spec: SpecOf<Class>;
-    casts: { spellId: number; timestamp: number; }[];
+    spec: Spec;
+    playerId: string;
+    casts: { castId: string; spellId: number; timestamp: number; }[];
 }
 
 export type LogSearchResponse = {
@@ -255,17 +257,19 @@ query RaidCDUsageEvents {
             ...result!.data.reportData.report.playerDetails.data.playerDetails.healers,
             ...result!.data.reportData.report.playerDetails.data.playerDetails.tanks,
         ]
-            .map((p): RaidCDUsage => {
+            .map((p, i): RaidCDUsage => {
                 const className = ClassList.find(c => c.replaceAll(' ', '') === p.type)! as Class;
                 const spec = p.specs[0].spec as SpecOf<typeof className>;
 
                 const casts = result!.data.reportData.report.raidCDs.data.filter(e => e.sourceID === p.id).map(a => ({
                     spellId: a.abilityGameID,
                     timestamp: Math.round((a.timestamp - timestamps.startTime) / 1000),
+                    castId: nodeUuid(),
                 }));
 
                 return {
                     name: p.name,
+                    playerId: i.toString(),
                     class: className,
                     spec: spec,
                     casts,
