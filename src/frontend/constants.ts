@@ -419,6 +419,20 @@ export const COOLDOWNS: Cooldowns = {
     ],
     'Priest': [
         {
+            ability: 'Rapture',
+            spec: 'Discipline',
+            cooldown: 90,
+            duration: 8,
+            spellId: 47536
+        },
+        {
+            ability: 'Evangelism',
+            spec: 'Discipline',
+            cooldown: 90,
+            duration: 6,
+            spellId: 246287,
+        },
+        {
             ability: 'Power Word: Barrier',
             spec: 'Discipline',
             cooldown: 180,
@@ -538,6 +552,13 @@ export const COOLDOWNS: Cooldowns = {
         },
     ],
     'Evoker': [
+        {
+            ability: 'Zephyr',
+            spec: 'ALL',
+            cooldown: 120,
+            duration: 8,
+            spellId: 374227,
+        },
         {
             ability: 'Dream Flight',
             spec: 'Preservation',

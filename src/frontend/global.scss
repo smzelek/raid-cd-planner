@@ -667,6 +667,23 @@ a.link {
     flex-direction: column;
   }
 
+  .fight-breakdown-pane--missing-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fight-breakdown-pane--missing {
+    ion-icon {
+      color: orange;
+    }
+
+    margin-top: 5px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
   .fight-breakdown-pane--error {
     margin-top: 5px;
     color: red;
@@ -759,6 +776,8 @@ a.link {
 }
 
 #ert-note-pane {
+  min-height: 0px;
+
   .ert-note-pane--body {
     background: #212121;
     border: 1px solid gray;
@@ -767,6 +786,7 @@ a.link {
     gap: 10px;
     display: flex;
     flex-direction: column;
+    height: 100%;
   }
 
   .ert-note-pane--phase-timings {
@@ -780,6 +800,12 @@ a.link {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+  }
+
+  .ert-note-pane--error {
+    margin-top: 5px;
+    color: red;
+    font-size: 12px;
   }
 
   .ert-note-pane--phase-input {
@@ -801,7 +827,7 @@ a.link {
     flex-direction: column;
     border: 1px solid gray;
     border-radius: 4px;
-    max-height: 120px;
+    max-height: 250px;
     overflow: auto;
   }
 }

@@ -137,6 +137,7 @@ export const webUuid = () => {
 export const findInvalidCds = (cds: PlannedPlayerRaidCDs) => {
     const lastAbilityUse: Record<number, number> = {};
 
+    const ROUNDING_EPSILON = 3;
     return cds.casts.reduce((errs, cd) => {
         const lastUse = lastAbilityUse[cd.spellId];
 
@@ -145,10 +146,39 @@ export const findInvalidCds = (cds: PlannedPlayerRaidCDs) => {
             return errs;
         }
 
-        if (cd.timestamp < lastUse + cd.cooldown) {
+        if (cd.timestamp < lastUse + cd.cooldown - ROUNDING_EPSILON) {
             return [...errs, cd];
         }
 
         return errs;
     }, [] as CooldownEvent[]);
+};
+
+export const findUnusedCDs = (cds: PlannedPlayerRaidCDs, endTime: number): string[] => {
+    const byAbility = cds.casts.reduce((acc, cur) => {
+        acc[cur.ability] = [...(acc[cur.ability] ?? []), cur];
+        return acc;
+    }, {} as Record<string, CooldownEvent[]>);
+
+    const missingUses = Object
+        .entries(byAbility)
+        .filter(([_, usages]) => {
+            const hasAMissingUse = usages.some((usage, i) => {
+                const priorUsage = (usages[i - 1] as CooldownEvent | undefined);
+                const nextUsage = (usages[i + 1] as CooldownEvent | undefined);
+
+                const gapForPriorUse = !!priorUsage && (priorUsage.timestamp + priorUsage.cooldown + priorUsage.cooldown < usage.timestamp);
+                const gapForNextUse = !!nextUsage && (usage.timestamp + usage.cooldown + usage.cooldown < nextUsage.timestamp);
+
+                const missingPriorUse = !priorUsage && (usage.cooldown < usage.timestamp);
+                const missingNextUse = !nextUsage && (usage.timestamp + usage.cooldown < endTime);
+
+                return gapForPriorUse || gapForNextUse || missingPriorUse || missingNextUse;
+            });
+
+            return hasAMissingUse;
+        })
+        .map(([ability, _]) => ability);
+
+    return missingUses;
 };

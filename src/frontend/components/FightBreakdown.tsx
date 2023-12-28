@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
 import { CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Roster, Spec, SpecOf, } from '../constants';
-import { displaySec, offsetRaidCDRows, CooldownEvent, addRaidCDProperties, getHealersInRoster, refreshTooltips, findInvalidCds, webUuid } from '../utils';
+import { displaySec, offsetRaidCDRows, CooldownEvent, addRaidCDProperties, getHealersInRoster, refreshTooltips, findInvalidCds, webUuid, findUnusedCDs } from '../utils';
 import { Encounter } from '../../types';
 import { BossAbilityDamageEvents, LogSearchResponse, ReportFightTimestamps } from '../../backend/services/wcl.service';
 import * as d3 from 'd3';
@@ -207,6 +207,8 @@ export const FightBreakdown = (props: {
 
         const payload = event.active.data.current as DraggableSpell;
 
+        console.log({ isOver, tooltipLineSec, payload })
+
         if (payload.type === 'NEW') {
             let update: PlannedRaidCDs = [...raidCDs];
 
@@ -271,6 +273,42 @@ export const FightBreakdown = (props: {
         }));
         setRaidCDs(update);
     };
+
+    const playerErrors = useMemo(() => {
+        return raidCDs.map(rcd => {
+            const player = roster.find(r => r.playerId === rcd.playerId);
+            if (!player) {
+                return null;
+            }
+
+            const errorCasts = findInvalidCds(rcd);
+            if (errorCasts.length === 0) {
+                return null;
+            }
+            return {
+                name: player.name,
+                errors: errorCasts
+            }
+        }).filter(p => !!p);
+    }, [raidCDs]);
+
+    const playerUtilization = useMemo(() => {
+        return raidCDs.map(rcd => {
+            const player = roster.find(r => r.playerId === rcd.playerId);
+            if (!player) {
+                return null;
+            }
+
+            const missingCasts = findUnusedCDs(rcd, fightSec);
+            if (missingCasts.length === 0) {
+                return null;
+            }
+            return {
+                name: player.name,
+                missing: missingCasts
+            }
+        }).filter((p) => !!p);
+    }, [raidCDs]);
 
     return (
         <div id="fight-breakdown">
@@ -341,7 +379,7 @@ export const FightBreakdown = (props: {
                         </div>
                     )}
                 </div>
-                <div
+                <div ref={setNodeRef}
                     className='fight-breakdown-pane--scroll-wrapper'
                     onScroll={(e) => {
                         setScrollOffset((e.target as Element).scrollLeft);
@@ -354,7 +392,7 @@ export const FightBreakdown = (props: {
                             {chartMode === 'line' && <LineChart chartData={chartData} chartScale={chartScale} setTooltipLineSec={setTooltipLineSec} />}
                         </>
                     }, [chartMode, chartData, chartScale, setTooltipLineSec])}
-                    <div ref={setNodeRef}>
+                    <div>
                         {useMemo(() => (
                             <CDUsageGraph
                                 mode={mode}
@@ -368,29 +406,30 @@ export const FightBreakdown = (props: {
                 </div>
             </div>
             <div className='fight-breakdown-pane--errors'>
-                {raidCDs.map(rcd => {
-                    const player = roster.find(r => r.playerId === rcd.playerId);
-                    if (!player) {
-                        return null;
-                    }
-
-                    const errorCasts = findInvalidCds(rcd);
-                    if (errorCasts.length === 0) {
-                        return null;
-                    }
-
-                    return (
-                        <div className='fight-breakdown-pane--error'>
-                            <ion-icon name="warning"></ion-icon>
-                            <span>
-                                {player?.name}:
-                            </span>
-                            <span>
-                                {errorCasts.map(ec => `${ec.ability} is still on cooldown at ${displaySec(ec.timestamp, false)}. `)}
-                            </span>
-                        </div>
-                    );
-                })}
+                {playerErrors.map(player => (
+                    <div className='fight-breakdown-pane--error'>
+                        <ion-icon name="warning"></ion-icon>
+                        <span>
+                            {player?.name}:
+                        </span>
+                        <span>
+                            {player?.errors.map(ec => `${ec.ability} is still on cooldown at ${displaySec(ec.timestamp, false)}. `)}
+                        </span>
+                    </div>
+                ))}
+            </div>
+            <div className='fight-breakdown-pane--missing-list'>
+                {playerUtilization.map(player => (
+                    <div className='fight-breakdown-pane--missing'>
+                        <ion-icon name="warning"></ion-icon>
+                        <span>
+                            {player?.name}:
+                        </span>
+                        <span>
+                            {player?.missing.map((m) => `${m} can be used more. `)}
+                        </span>
+                    </div>
+                ))}
             </div>
         </div>
     );
