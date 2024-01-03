@@ -38,6 +38,7 @@ export const COOLDOWNS_WITH_VARIABLE_CDR = [
     "Healing Tide Totem",
     "Tranquility",
     "Revival",
+    "Darkness",
 ]
 
 export const CURRENT_RAID_ID = 1207; // Amirdrassil

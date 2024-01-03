@@ -52,7 +52,7 @@ export const CreatePlan = (props: { boss: Encounter, roster: Roster, setRoster: 
                             <div className='info'>
                                 <ion-icon name="information-circle" />
                                 <span>
-                                    Drag casts onto the fight timeline.
+                                    Drag casts onto the fight timeline. Uncheck spells you don't want to track. Modify CDs for spells with variable CDR or talents.
                                 </span>
                             </div>
                         )}
