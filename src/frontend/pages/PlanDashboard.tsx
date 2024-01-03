@@ -32,7 +32,10 @@ export const PlanDashboard = () => {
                 setBossId(id);
                 setView('create-plan')
             }} />}
-            {view === 'create-plan' && <CreatePlan boss={selectedBoss!} roster={roster} setRoster={setRoster} />}
+            {view === 'create-plan' && <CreatePlan boss={selectedBoss!} roster={roster} setRoster={setRoster} onBack={() => {
+                setBossId(null);
+                setView('plan-selection');
+            }} />}
         </section>
     )
 };

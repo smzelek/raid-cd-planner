@@ -34,6 +34,12 @@ export const constrain = <T extends Record<string, (...args: any[]) => string>>(
     return t;
 }
 
+export const COOLDOWNS_WITH_VARIABLE_CDR = [
+    "Healing Tide Totem",
+    "Tranquility",
+    "Revival",
+]
+
 export const CURRENT_RAID_ID = 1207; // Amirdrassil
 export type CURRENT_RAID_ENCOUNTER_IDS = 2708 | 2731;
 export const IMPORTANT_CURRENT_RAID_SPELLS: Record<CURRENT_RAID_ENCOUNTER_IDS, string[]> = {

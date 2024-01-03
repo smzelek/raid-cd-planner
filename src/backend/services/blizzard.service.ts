@@ -155,7 +155,6 @@ export class BlizzardApi {
             id: response.id,
             name: response.name,
             phases,
-            spells: allSpells,
         };
     }
 }

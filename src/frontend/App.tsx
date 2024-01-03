@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import Planner from "./pages/Planner";
+// import Planner from "./pages/Planner";
 import {
   createHashRouter,
   RouterProvider,
@@ -30,10 +30,10 @@ const router = createHashRouter([
     path: "/",
     element: <PlanDashboard />,
   },
-  {
-    path: "/planner",
-    element: <Planner />,
-  },
+  // {
+  //   path: "/planner",
+  //   element: <Planner />,
+  // },
 ]);
 
 export default function App() {

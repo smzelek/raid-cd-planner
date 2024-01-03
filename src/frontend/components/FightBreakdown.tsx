@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
-import { CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Roster, Spec, SpecOf, } from '../constants';
-import { displaySec, offsetRaidCDRows, CooldownEvent, addRaidCDProperties, getHealersInRoster, refreshTooltips, findInvalidCds, webUuid, findUnusedCDs } from '../utils';
+import { useEffect, useRef, useState, useMemo } from 'react'
+import { CLASS_COLORS, CLASS_OFFSET_COLORS, Class, Roster, Spec, SpecMatchesClass, cooldownsBySpec, } from '../constants';
+import { displaySec, offsetRaidCDRows, CooldownEvent, addRaidCDProperties, refreshTooltips, findInvalidCds, webUuid, findUnusedCDs } from '../utils';
 import { Encounter } from '../../types';
-import { BossAbilityDamageEvents, LogSearchResponse, ReportFightTimestamps } from '../../backend/services/wcl.service';
+import { BossAbilityDamageEvents, ReportFightTimestamps } from '../../backend/services/wcl.service';
 import * as d3 from 'd3';
-import { Spell } from '../../backend/services/blizzard.service';
 import { DragEndEvent, DragOverlay, DragStartEvent, useDndMonitor, useDraggable, useDroppable } from '@dnd-kit/core';
 import { DraggableSpell } from './RosterEditor';
 import type { Modifier } from '@dnd-kit/core';
 import { getEventCoordinates } from '@dnd-kit/utilities';
+import useResizeObserver from 'use-resize-observer';
 
 const MARGIN_TOP = 20;
 const COLORS = d3.schemeCategory10;
@@ -22,6 +22,7 @@ export type PlannedPlayerRaidCDs = {
     playerId: string;
     casts: CooldownEvent[];
 };
+
 export type PlannedRaidCDs = PlannedPlayerRaidCDs[];
 
 export const snapLeftToCursor: Modifier = ({
@@ -52,9 +53,28 @@ export const snapLeftToCursor: Modifier = ({
 type GridData = {
     data: PlannedRaidCDs;
     fightSec: number;
-}
+};
+
+// Compress to X second precision
+const smoothSeries = (series: number[], fightSec: number): number[] => {
+    const newSeries = new Array(fightSec).fill(0);
+    for (let i = PRECISION - 1; i <= newSeries.length - PRECISION; i += PRECISION) {
+        const lookbacks = new Array(PRECISION).fill(0).map((_, x) => -x);
+        const sum = lookbacks.map(x => series[i + x]).reduce((acc, cur) => acc + cur, 0);
+        lookbacks.forEach(x => {
+            newSeries[i + x] = sum;
+        });
+    }
+    for (let i = 1; i < newSeries.length - 2; i++) {
+        if (newSeries[i] === 0 && (newSeries[i - 1] > 0 || newSeries[i + 1] > 0)) {
+            newSeries[i] = 1;
+            i++;
+        }
+    }
+    return newSeries;
+};
+
 export const FightBreakdown = (props: {
-    boss: Encounter,
     roster: Roster,
     chartScale: number,
     raidCDs: PlannedRaidCDs,
@@ -64,30 +84,21 @@ export const FightBreakdown = (props: {
     setRaidCDs: (_: PlannedRaidCDs) => void,
     setChartScale: (_: number) => void,
 }) => {
-    const { boss, roster, raidCDs, timestamps, bossDamage, chartScale, mode, setChartScale, setRaidCDs } = props;
+    const { roster, raidCDs, timestamps, bossDamage, chartScale, mode, setChartScale, setRaidCDs } = props;
     const fightSec = Math.ceil(timestamps.endTime - timestamps.startTime);
     const [tooltipLineSec, setTooltipLineSec] = useState<number | null>(null);
     const [scrollOffset, setScrollOffset] = useState<number>(0);
     const [chartMode, setChartMode] = useState<'line' | 'stacked'>('stacked');
 
-    // Compress to X second precision
-    const smoothSeries = (series: number[]): number[] => {
-        const newSeries = new Array(fightSec).fill(0);
-        for (let i = PRECISION - 1; i <= newSeries.length - PRECISION; i += PRECISION) {
-            const lookbacks = new Array(PRECISION).fill(0).map((_, x) => -x);
-            const sum = lookbacks.map(x => series[i + x]).reduce((acc, cur) => acc + cur, 0);
-            lookbacks.forEach(x => {
-                newSeries[i + x] = sum;
-            });
-        }
-        for (let i = 1; i < newSeries.length - 2; i++) {
-            if (newSeries[i] === 0 && (newSeries[i - 1] > 0 || newSeries[i + 1] > 0)) {
-                newSeries[i] = 1;
-                i++;
-            }
-        }
-        return newSeries;
-    };
+    const labelRef = useRef(null);
+    const [labelWidth, setLabelWidth] = useState<number | null>(null);
+
+    useResizeObserver({
+        ref: labelRef,
+        onResize: (e) => {
+            setLabelWidth(e.width ?? null);
+        },
+    })
 
     const chartData: ChartData = useMemo(() => {
         // 1 second precision
@@ -105,7 +116,7 @@ export const FightBreakdown = (props: {
         });
 
         abilities.forEach(ability => {
-            dtpsSeriesMap[ability] = smoothSeries(dtpsSeriesMap[ability]);
+            dtpsSeriesMap[ability] = smoothSeries(dtpsSeriesMap[ability], fightSec);
         });
 
         const highestDamagePeak = Math.max(
@@ -181,9 +192,78 @@ export const FightBreakdown = (props: {
         }
     }, [raidCDs, roster]);
 
+    const playerErrors = useMemo(() => {
+        return raidCDs.map(rcd => {
+            const player = roster.find(r => r.playerId === rcd.playerId);
+            if (!player) {
+                return null;
+            }
+
+            const errorCasts = findInvalidCds(rcd, player.cdOverrides);
+            if (errorCasts.length === 0) {
+                return null;
+            }
+            return {
+                name: player.name,
+                class: player.class,
+                errors: errorCasts
+            }
+        }).filter((p): p is ({ name: string; class: Class; errors: CooldownEvent[] }) => !!p);
+    }, [raidCDs, roster]);
+
+    const playerUtilization = useMemo(() => {
+        return roster.map(player => {
+            const cdUsages = raidCDs.find(rcd => rcd.playerId === player.playerId)?.casts ?? [];
+            const allCds = cooldownsBySpec(player as SpecMatchesClass);
+
+            console.log({ name: player.name, tracking: player.cdTracking })
+
+            const missingCasts = findUnusedCDs(allCds, cdUsages, fightSec, player.cdOverrides, player.cdTracking);
+            if (Object.keys(missingCasts).length === 0) {
+                return null;
+            }
+
+            const missingCastTexts = Object.entries(missingCasts).reduce((acc, [k, v]) => {
+                const times = (() => {
+                    const _times = v.map(([start, end]) => {
+                        if (start === 0 && end === fightSec) {
+                            return `entirely`
+                        }
+
+                        return `between ${displaySec(start, false)} and ${displaySec(end, false)}`
+                        // if (start !== 0) {
+                        //     return `after ${displaySec(start, false)}`
+                        // }
+                        // if (!!end) {
+                        //     return `before ${displaySec(end, false)}`
+                        // }
+                        // return '';
+                    });
+
+                    if (_times.length > 1) {
+                        return `${_times.slice(0, -1).join(', ')}, and ${_times.slice(-1)[0]}.`;
+                    }
+
+                    return `${_times[0]}.`;
+                })();
+
+                acc[k] = times;
+
+                return acc;
+            }, {} as Record<string, string>);
+
+            return {
+                name: player.name,
+                class: player.class,
+                missing: missingCastTexts
+            }
+
+        }).filter((p): p is ({ name: string; class: Class; missing: Record<string, string>; }) => !!p);
+    }, [raidCDs, roster]);
+
     useEffect(() => {
         setTooltipLineSec(null);
-    }, [chartScale])
+    }, [chartScale]);
 
     const [draggedSpell, setDraggedSpell] = useState<DraggableSpell | null>();
 
@@ -198,7 +278,7 @@ export const FightBreakdown = (props: {
         setTimeout(() => {
             refreshTooltips();
         }, 10);
-    }
+    };
 
     const handleDragEnd = (event: DragEndEvent) => {
         if (!isOver || !tooltipLineSec) {
@@ -206,8 +286,6 @@ export const FightBreakdown = (props: {
         }
 
         const payload = event.active.data.current as DraggableSpell;
-
-        console.log({ isOver, tooltipLineSec, payload })
 
         if (payload.type === 'NEW') {
             let update: PlannedRaidCDs = [...raidCDs];
@@ -274,42 +352,6 @@ export const FightBreakdown = (props: {
         setRaidCDs(update);
     };
 
-    const playerErrors = useMemo(() => {
-        return raidCDs.map(rcd => {
-            const player = roster.find(r => r.playerId === rcd.playerId);
-            if (!player) {
-                return null;
-            }
-
-            const errorCasts = findInvalidCds(rcd);
-            if (errorCasts.length === 0) {
-                return null;
-            }
-            return {
-                name: player.name,
-                errors: errorCasts
-            }
-        }).filter(p => !!p);
-    }, [raidCDs]);
-
-    const playerUtilization = useMemo(() => {
-        return raidCDs.map(rcd => {
-            const player = roster.find(r => r.playerId === rcd.playerId);
-            if (!player) {
-                return null;
-            }
-
-            const missingCasts = findUnusedCDs(rcd, fightSec);
-            if (missingCasts.length === 0) {
-                return null;
-            }
-            return {
-                name: player.name,
-                missing: missingCasts
-            }
-        }).filter((p) => !!p);
-    }, [raidCDs]);
-
     return (
         <div id="fight-breakdown">
             <DragOverlay
@@ -329,16 +371,16 @@ export const FightBreakdown = (props: {
                         }}
                     >
                         <a
-                            style={{ pointerEvents: 'none' }}
+                            style={{
+                                pointerEvents: 'none',
+                                boxShadow: `0 0 0 1px ${CLASS_COLORS[draggedSpell.playerClass]}`
+                            }}
                             data-wh-icon-size="small"
                             href={`https://www.wowhead.com/spell=${draggedSpell.spellId}`}
                         />
                     </div>
                 )}
             </DragOverlay>
-            {useMemo(() => (
-                <ChartLegend boss={boss} chartData={chartData} />
-            ), [boss, chartData])}
             <div className='fight-breakdown-pane--buttons'>
                 <button
                     className='primary-btn primary-btn--no-load chart-scale-btn'
@@ -357,7 +399,10 @@ export const FightBreakdown = (props: {
                 </button>
             </div>
             <div className='fight-breakdown-pane--charts'>
-                <div className='fight-breakdown-pane--labels'>
+                {useMemo(() => (
+                    <ChartLegend chartData={chartData} />
+                ), [chartData])}
+                <div ref={labelRef} className='fight-breakdown-pane--labels'>
                     {useMemo(() => (
                         <DamageTakenGraphLabels chartData={chartData} />
                     ), [chartData])}
@@ -405,32 +450,38 @@ export const FightBreakdown = (props: {
                     </div>
                 </div>
             </div>
-            <div className='fight-breakdown-pane--errors'>
-                {playerErrors.map(player => (
-                    <div className='fight-breakdown-pane--error'>
-                        <ion-icon name="warning"></ion-icon>
-                        <span>
-                            {player?.name}:
-                        </span>
-                        <span>
-                            {player?.errors.map(ec => `${ec.ability} is still on cooldown at ${displaySec(ec.timestamp, false)}. `)}
-                        </span>
+            {mode === 'edit' && labelWidth && (
+                <>
+                    <div className='fight-breakdown-pane--advice' style={{ gridTemplateColumns: `${labelWidth}px auto` }}>
+                        {playerErrors.map(player => (
+                            <div className='fight-breakdown-pane--error'>
+                                <div className='advice-label-wrapper'>
+                                    <span className='advice-label' style={{ color: CLASS_COLORS[player.class] }}>
+                                        {player.name}
+                                        <ion-icon name="alert-circle"></ion-icon>
+                                    </span>
+                                </div>
+                                <span className='advice-text'>
+                                    {player.errors.map(ec => `${ec.ability} is still on cooldown at ${displaySec(ec.timestamp, false)}. `)}
+                                </span>
+                            </div>
+                        ))}
+                        {playerUtilization.map(player => (
+                            <div key={player.name} className='fight-breakdown-pane--missing'>
+                                <div className='advice-label-wrapper'>
+                                    <span className='advice-label' style={{ color: CLASS_COLORS[player.class] }}>
+                                        {player.name}
+                                        <ion-icon name="warning"></ion-icon>
+                                    </span>
+                                </div>
+                                <span className='advice-text'>
+                                    {Object.entries(player.missing).map(([ability, text]) => `${ability} is unused ${text}`).join(' ')}
+                                </span>
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
-            <div className='fight-breakdown-pane--missing-list'>
-                {playerUtilization.map(player => (
-                    <div className='fight-breakdown-pane--missing'>
-                        <ion-icon name="warning"></ion-icon>
-                        <span>
-                            {player?.name}:
-                        </span>
-                        <span>
-                            {player?.missing.map((m) => `${m} can be used more. `)}
-                        </span>
-                    </div>
-                ))}
-            </div>
+                </>
+            )}
         </div>
     );
 };
@@ -486,15 +537,14 @@ export const DamageTakenGraphLabels = ({ chartData }: { chartData: ChartData }) 
     )
 }
 
-const ChartLegend = ({ boss, chartData }: { boss: Encounter; chartData: ChartData }) => {
-    const spells = chartData.keysByCount.map(a => boss.spells.find(s => s.ability === a)).filter((a): a is Spell => !!a);
+const ChartLegend = ({ chartData }: { chartData: ChartData }) => {
     return (
         <div id='chart-legend'>
-            {spells.map((spell, i) => (
-                <div key={spell.spellId} className='chart-legend-series'>
+            {chartData.keysByCount.map((key, i) => (
+                <div key={key} className='chart-legend-series'>
                     <span className='series-line' style={{ background: chartData.colors[i] }}></span>
                     <span>
-                        {spell.ability}
+                        {key}
                     </span>
                 </div>
             ))}
@@ -839,11 +889,16 @@ const DraggableGridCast = (props: {
                 visibility: isDragging ? 'hidden' : 'visible'
             }}
         >
-            <a
-                onClick={() => { }}
-                data-wh-icon-size='small'
-                href={`https://www.wowhead.com/spell=${cast.spellId}`}>
-            </a>
+            <div className='no-click-a-wrapper'>
+                <a
+                    onClick={() => { }}
+                    style={{
+                        boxShadow: `0 0 0 1px ${CLASS_COLORS[player.class]}`
+                    }}
+                    data-wh-icon-size='small'
+                    href={`https://www.wowhead.com/spell=${cast.spellId}`}>
+                </a>
+            </div>
         </div>
     )
 };

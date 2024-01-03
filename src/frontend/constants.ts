@@ -167,6 +167,8 @@ export type RosterMember = {
     spec: Spec;
     name: string;
     playerId: string;
+    cdOverrides: Record<number, number>;
+    cdTracking: Record<number, boolean>;
 };
 export type Roster = RosterMember[];
 export type BossAbility = {
@@ -530,6 +532,14 @@ export const COOLDOWNS: Cooldowns = {
             cooldown: 120,
             duration: 8,
             spellId: 77761,
+            category: 'UTIL'
+        },
+        {
+            ability: 'Innervate',
+            spec: 'ALL',
+            cooldown: 180,
+            duration: 8,
+            spellId: 29166,
             category: 'UTIL'
         },
     ],

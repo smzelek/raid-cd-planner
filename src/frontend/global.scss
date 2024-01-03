@@ -145,7 +145,6 @@ a.link {
 .timing-editor {
   width: 200px;
   height: 26px;
-  margin-left: 3px;
   border-radius: 6px;
   padding-left: 8px;
   border: 1px solid #646464;
@@ -166,9 +165,46 @@ a.link {
   background: #141414;
   padding: 10px;
   display: flex;
-  flex-direction: column;
   border: 1px solid gray;
   border-radius: 4px;
+  overflow-y: auto;
+  gap: 15px;
+  justify-content: space-between;
+  position: relative;
+
+  .scroll-padder {
+    padding: 5px;
+  }
+
+  .override-cd-editor {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    label {
+      font-size: 8px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: 11px;
+      top: -5px;
+    }
+
+    input {
+      width: 36px;
+      height: 20px;
+      border-radius: 6px;
+      padding: 3px 4px;
+      border: 1px solid #646464;
+      background-color: rgb(15, 15, 15);
+
+      &:focus-within {
+        border: 1px solid #1b6dff;
+        outline: 1px solid #1b6dff;
+      }
+    }
+  }
 
   .roster--title {
     margin-bottom: 3px;
@@ -236,22 +272,6 @@ a.link {
       }
     }
 
-    .override-cd-editor,
-    .override-dur-editor {
-      width: 95px;
-      height: 26px;
-      margin-left: 3px;
-      border-radius: 6px;
-      padding-left: 8px;
-      border: 1px solid #646464;
-      background-color: rgb(15, 15, 15);
-
-      &:focus-within {
-        border: 1px solid #1b6dff;
-        outline: 1px solid #1b6dff;
-      }
-    }
-
     .override-dur-editor {
       width: 87px;
     }
@@ -260,17 +280,16 @@ a.link {
 
 
 .roster-member {
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-
+  flex-direction: column;
+  align-items: flex-start;
 
   .roster-member--editor {
     position: relative;
 
     input {
-      width: 200px;
+      width: 210px;
       height: 32px;
       padding-left: 8px;
       font-size: 15px;
@@ -296,19 +315,26 @@ a.link {
   }
 
   .roster-member--cds {
+    margin-top: 5px;
     margin-left: 3px;
     display: flex;
-    gap: 3px;
+    gap: 5px;
+    align-items: flex-start;
+    flex-direction: column;
+
 
     a[data-wh-icon-size] {
       height: 20px;
       width: 20px;
     }
   }
-}
 
-#cds-drag-preview {
-  // padding: 3px;
+  .roster-member--cd {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: max-content minmax(25px, min-content) max-content;
+    align-items: center;
+  }
 }
 
 .cheat-sheet {
@@ -379,6 +405,26 @@ a.link {
 
 .cooldown-text {
   font-size: 16px;
+}
+
+.player-text-wrapper {
+  position: relative;
+
+  img:first-child {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 0;
+    bottom: 0;
+    left: 6px;
+    margin: auto 0;
+    border: 1px solid #ffffffb0;
+    border-radius: 2px;
+  }
+
+  .player-text:nth-child(2) {
+    padding-left: 25px;
+  }
 }
 
 .player-text {
@@ -546,6 +592,7 @@ a.link {
   background: transparent;
   border: none;
   cursor: pointer;
+  z-index: 1;
 }
 
 #create-plan {
@@ -565,6 +612,17 @@ a.link {
   }
 }
 
+.healers-pane-wrapper,
+.rt-note-wrapper {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+
+  .info {
+    align-self: flex-end;
+  }
+}
+
 #logs-pane {
   display: flex;
   flex-direction: column;
@@ -573,18 +631,9 @@ a.link {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    padding: 7px 0;
 
-    .info {
-      margin-left: 5px;
-      display: flex;
-      align-items: center;
-      font-size: 12px;
-
-      span {
-        font-size: 10px;
-        font-style: italic;
-      }
+    h3 {
+      padding: 7px 0;
     }
   }
 
@@ -638,12 +687,15 @@ a.link {
   width: 100%;
 
   .fight-breakdown-pane--title {
-    display: flex;
-    align-items: center;
-  }
+    >h3 {
+      display: flex;
+      align-items: center;
+      padding: 7px 0;
+    }
 
-  h3 {
-    padding: 7px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
   }
 
   .wcl-option-card {
@@ -656,41 +708,55 @@ a.link {
 #fight-breakdown {
   background: #212121;
   border: 1px solid gray;
-  padding: 10px;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
   position: relative;
 
-  .fight-breakdown-pane--errors {
-    display: flex;
-    flex-direction: column;
+  .fight-breakdown-pane--advice {
+    border-top: 0.5px solid white;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: max-content auto;
+    font-size: 12px;
   }
 
-  .fight-breakdown-pane--missing-list {
+  .advice-label-wrapper {
     display: flex;
-    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+
+  .advice-label {
+    font-weight: bold;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+    padding-right: 3px;
+  }
+
+  .advice-text {
+    padding-left: 2px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
   }
 
   .fight-breakdown-pane--missing {
+    display: contents;
+
     ion-icon {
       color: orange;
     }
-
-    margin-top: 5px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
   }
 
   .fight-breakdown-pane--error {
-    margin-top: 5px;
-    color: red;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    display: contents;
+
+    ion-icon {
+      color: red;
+    }
   }
 
   .fight-breakdown-pane--buttons {
@@ -702,6 +768,7 @@ a.link {
 
   .fight-breakdown-pane--charts {
     display: flex;
+    padding: 10px 10px 0px 10px;
   }
 
   .fight-breakdown-pane--labels {
@@ -776,7 +843,8 @@ a.link {
 }
 
 #ert-note-pane {
-  min-height: 0px;
+  height: 100%;
+  min-height: 0;
 
   .ert-note-pane--body {
     background: #212121;
@@ -787,6 +855,11 @@ a.link {
     display: flex;
     flex-direction: column;
     height: 100%;
+  }
+
+  h5 {
+    display: flex;
+    justify-content: space-between;
   }
 
   .ert-note-pane--phase-timings {
@@ -828,17 +901,21 @@ a.link {
     border: 1px solid gray;
     border-radius: 4px;
     max-height: 250px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 
 #healers-pane {
+  height: 100%;
+  min-height: 0;
 
   .healers-pane--title {
     margin-bottom: 2px;
   }
 
   .healers-pane--body {
+    height: 100%;
     background: #212121;
     border: 1px solid gray;
     padding: 10px;
@@ -853,7 +930,7 @@ a.link {
   }
 
   .roster {
-    min-height: 264px;
+    min-height: 245px;
   }
 }
 
@@ -952,6 +1029,10 @@ a.link {
 
 #cd-usage-graph {
 
+  .no-click-a-wrapper {
+    cursor: pointer;
+  }
+
   a[data-wh-icon-size],
   a[data-wowhead] {
     pointer-events: none;
@@ -1001,9 +1082,12 @@ a.link {
 }
 
 .raid-cds-grid--cast {
+  cursor: pointer;
   padding: 3px;
   z-index: 1;
   border: 1px solid black;
+  display: grid;
+  align-items: center;
 }
 
 .wcl-logs--link {
@@ -1090,5 +1174,53 @@ a[data-wowhead] {
 
   del {
     display: none !important;
+  }
+}
+
+input[type=checkbox] {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #646464;
+  border-radius: 2px;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background: rgb(54, 54, 54);
+
+    &[checked]::before {
+      background-color: white;
+    }
+  }
+
+  &::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform-origin: bottom left;
+    background-color: transparent;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  &[checked]::before {
+    background-color: #f8b73b;
+  }
+
+}
+
+.info {
+  margin-left: 5px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 100;
+
+  span {
+    font-size: 10px;
+    font-style: italic;
   }
 }

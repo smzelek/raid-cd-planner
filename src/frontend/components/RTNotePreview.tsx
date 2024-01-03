@@ -58,6 +58,11 @@ export default function RTNotePreview(props: {
             .flat(1)
             .sort((c1, c2) => c1.timestamp - c2.timestamp);
 
+        const hasRepeatPhases = phases.reduce((acc, phase) => {
+            const id = phaseIds[phase.title];
+            acc[id] = phases.filter(p => p.title === phase.title).length > 1;
+            return acc;
+        }, {} as Record<number, boolean>);
         const phaseTransitionCounts: Record<number, Record<number, number>> = {};
         const phaseCounts: Record<number, number> = {};
 
@@ -87,13 +92,14 @@ export default function RTNotePreview(props: {
 
                 phaseCounts[toPhaseId] = (phaseCounts[toPhaseId] ?? 0) + 1;
 
-                title = `-- ${p.title} (${phaseCounts[toPhaseId]}: ${displaySec(p.start)})`;
+                title = `\n-- ${p.title} ${hasRepeatPhases[phaseIds[p.title]] ? `(${phaseCounts[toPhaseId]}: ${displaySec(p.start)})` : ''}`;
             } else {
-                title = `-- ${p.title} (1: ${displaySec(p.start)})`;
+                title = `-- ${p.title} ${hasRepeatPhases[phaseIds[p.title]] ? `(1: ${displaySec(p.start)})` : ''}`;
             }
 
             const phaseEnd = nextPhase?.start ?? Infinity;
             const castsForPhase = casts.filter(c => p.start <= c.timestamp && c.timestamp < phaseEnd);
+
             return [
                 title,
                 ...castsForPhase.map(c => {

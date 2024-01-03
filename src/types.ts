@@ -23,7 +23,6 @@ export type BlizzardEncounter = {
     id: number;
     name: string;
     phases: Phases[];
-    spells: Spell[];
 }
 
 export type Encounter = BlizzardEncounter & {

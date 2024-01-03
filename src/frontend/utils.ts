@@ -134,10 +134,10 @@ export const webUuid = () => {
     return crypto.randomUUID().split('-')[0]
 };
 
-export const findInvalidCds = (cds: PlannedPlayerRaidCDs) => {
+export const findInvalidCds = (cds: PlannedPlayerRaidCDs, overrides: Record<number, number>) => {
     const lastAbilityUse: Record<number, number> = {};
 
-    const ROUNDING_EPSILON = 3;
+    const ROUNDING_EPSILON = 1;
     return cds.casts.reduce((errs, cd) => {
         const lastUse = lastAbilityUse[cd.spellId];
 
@@ -145,8 +145,9 @@ export const findInvalidCds = (cds: PlannedPlayerRaidCDs) => {
             lastAbilityUse[cd.spellId] = cd.timestamp;
             return errs;
         }
+        const cooldown = (overrides[cd.spellId] ?? cd.cooldown);
 
-        if (cd.timestamp < lastUse + cd.cooldown - ROUNDING_EPSILON) {
+        if (cd.timestamp < lastUse + cooldown - ROUNDING_EPSILON) {
             return [...errs, cd];
         }
 
@@ -154,31 +155,69 @@ export const findInvalidCds = (cds: PlannedPlayerRaidCDs) => {
     }, [] as CooldownEvent[]);
 };
 
-export const findUnusedCDs = (cds: PlannedPlayerRaidCDs, endTime: number): string[] => {
-    const byAbility = cds.casts.reduce((acc, cur) => {
+export const findUnusedCDs = (classCDs: Cooldown<Class>[], raidCdCasts: CooldownEvent[], fightSec: number, overrides: Record<number, number>, tracking: Record<number, boolean>): Record<string, number[][]> => {
+    const usagesByAbility = raidCdCasts.reduce((acc, cur) => {
         acc[cur.ability] = [...(acc[cur.ability] ?? []), cur];
         return acc;
     }, {} as Record<string, CooldownEvent[]>);
 
-    const missingUses = Object
-        .entries(byAbility)
-        .filter(([_, usages]) => {
-            const hasAMissingUse = usages.some((usage, i) => {
+    const missingUses = classCDs
+        .filter(cd => tracking[cd.spellId] ?? true)
+        .reduce((acc, cd) => {
+            const usages = usagesByAbility[cd.ability];
+
+            if (!usages) {
+                acc[cd.ability] = [[0, fightSec]];
+                return acc;
+            }
+
+            const EXCLUDE_END = 5;
+
+            const rangesMissingUsage = usages.map((usage, i) => {
                 const priorUsage = (usages[i - 1] as CooldownEvent | undefined);
                 const nextUsage = (usages[i + 1] as CooldownEvent | undefined);
 
-                const gapForPriorUse = !!priorUsage && (priorUsage.timestamp + priorUsage.cooldown + priorUsage.cooldown < usage.timestamp);
-                const gapForNextUse = !!nextUsage && (usage.timestamp + usage.cooldown + usage.cooldown < nextUsage.timestamp);
+                const cooldown = (overrides[usage.spellId] ?? usage.cooldown);
 
-                const missingPriorUse = !priorUsage && (usage.cooldown < usage.timestamp);
-                const missingNextUse = !nextUsage && (usage.timestamp + usage.cooldown < endTime);
+                const gapForPriorUse = !!priorUsage && (priorUsage.timestamp + cooldown + cooldown < usage.timestamp);
+                const gapForNextUse = !!nextUsage && (usage.timestamp + cooldown + cooldown < nextUsage.timestamp);
 
-                return gapForPriorUse || gapForNextUse || missingPriorUse || missingNextUse;
-            });
+                const missingPriorUse = !priorUsage && (cooldown < usage.timestamp);
+                const missingNextUse = !nextUsage && (usage.timestamp + cooldown < fightSec);
 
-            return hasAMissingUse;
-        })
-        .map(([ability, _]) => ability);
+                const hasUsefulNextUse = usage.timestamp + cooldown + EXCLUDE_END < fightSec;
+
+                if (missingPriorUse && missingNextUse) {
+                    return [[0, usage.timestamp - cooldown], [usage.timestamp + cooldown, fightSec]]
+                }
+
+                if (missingPriorUse) {
+                    return [[0, usage.timestamp - cooldown]]
+                }
+
+                if (gapForPriorUse) {
+                    return [[priorUsage.timestamp + cooldown, usage.timestamp - cooldown]]
+                }
+
+                if (missingNextUse && hasUsefulNextUse) {
+                    return [[usage.timestamp + cooldown, fightSec]];
+                }
+
+                if (gapForNextUse) {
+                    return [[usage.timestamp + cooldown, nextUsage.timestamp - cooldown]]
+                }
+
+                return null;
+            })
+                .flat(1)
+                .filter((u): u is (number)[] => !!u);
+
+            if (rangesMissingUsage.length > 0) {
+                acc[cd.ability] = rangesMissingUsage;
+            }
+
+            return acc;
+        }, {} as Record<string, number[][]>);
 
     return missingUses;
 };

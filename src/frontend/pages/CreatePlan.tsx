@@ -10,7 +10,8 @@ import { FightBreakdown, PlannedPlayerRaidCDs, PlannedRaidCDs } from '../compone
 import RTNotePreview from '../components/RTNotePreview';
 
 
-export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roster: Roster, setRoster: (r: Roster) => void; }): React.JSX.Element => {
+export const CreatePlan = (props: { boss: Encounter, roster: Roster, setRoster: (r: Roster) => void; onBack: () => void; }): React.JSX.Element => {
+    const { boss, roster, setRoster, onBack } = props;
     const { data: logSearchData, isLoading: isLoadingLogSearchData, isSuccess: loadedLogSearchData, mutateAsync: _loadLogSearchData } = loadLogSearchData()
     const { data: logDetailsData, isLoading: isLoadingLogDetailsData, isSuccess: loadedLogDetailsData, mutateAsync: _loadLogDetailsData } = loadLogDetailsData()
 
@@ -35,6 +36,8 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
                 spec: r.spec,
                 playerId: r.playerId,
                 name: r.name,
+                cdOverrides: {},
+                cdTracking: {},
             }
         })
     }, [logDetailsData?.raidCDs]);
@@ -43,67 +46,85 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
         <div id='create-plan'>
             <div className='left-pane'>
                 <div className='search-logs-pane'>
-                    <BossDetails boss={boss} />
-                    <div id='healers-pane'>
-                        <div className='healers-pane--body'>
-                            <RosterEditor
-                                entryMode={view === 'create-note' ? 'note' : 'edit'}
-                                mode={view === 'create-note' ? 'split' : 'healers'}
-                                roster={roster}
-                                disabled={isLoadingLogDetailsData || view === 'analyze-log'}
-                                setRoster={setRoster}
-                            />
-                            {view === 'search-logs' && !isLoadingLogDetailsData && (
-                                <button
-                                    className={`primary-btn healers-pane--action ${isLoadingLogSearchData ? 'loading' : ''}`}
-                                    onClick={() => {
-                                        if (isLoadingLogSearchData) {
-                                            return;
-                                        }
-
-                                        _loadLogSearchData({
-                                            healerComp: rosterToHealerComp(roster),
-                                            encounterId: boss.wclId,
-                                        })
-                                    }}
-                                >
-                                    Load Top Logs
-                                </button>
-                            )}
-                            {view === 'analyze-log' && loadedLogDetailsData && (
-                                <button
-                                    className={`primary-btn healers-pane--action`}
-                                    onClick={() => {
-                                        let healers = getHealersInRoster(roster);
-                                        const existingHealerCds = getHealersInRoster(logDetailsData.raidCDs);
-
-                                        const copiedCDs: PlannedRaidCDs = existingHealerCds.map((player): PlannedPlayerRaidCDs => {
-                                            const casts = addRaidCDProperties(player.casts);
-                                            const copyTo = healers.findIndex(h => h.class === player.class && h.spec === player.spec);
-                                            const [target] = healers.splice(copyTo, 1);
-
-                                            return {
-                                                ...player,
-                                                playerId: target.playerId,
-                                                casts,
+                    <BossDetails boss={boss} onClose={onBack} />
+                    <div className='healers-pane-wrapper'>
+                        {view === 'create-note' && (
+                            <div className='info'>
+                                <ion-icon name="information-circle" />
+                                <span>
+                                    Drag casts onto the fight timeline.
+                                </span>
+                            </div>
+                        )}
+                        <div id='healers-pane'>
+                            <div className='healers-pane--body'>
+                                <RosterEditor
+                                    entryMode={view === 'create-note' ? 'note' : 'edit'}
+                                    mode={view === 'create-note' ? 'split' : 'healers'}
+                                    roster={roster}
+                                    disabled={isLoadingLogDetailsData || view === 'analyze-log'}
+                                    setRoster={setRoster}
+                                />
+                                {view === 'search-logs' && !isLoadingLogDetailsData && (
+                                    <button
+                                        className={`primary-btn healers-pane--action ${isLoadingLogSearchData ? 'loading' : ''}`}
+                                        onClick={() => {
+                                            if (isLoadingLogSearchData) {
+                                                return;
                                             }
-                                        });
 
-                                        setRosterCDs(copiedCDs);
-                                        setView('create-note');
-                                    }}
-                                >
-                                    Edit Note
-                                </button>
-                            )}
+                                            _loadLogSearchData({
+                                                healerComp: rosterToHealerComp(roster),
+                                                encounterId: boss.wclId,
+                                            })
+                                        }}
+                                    >
+                                        Load Top Logs
+                                    </button>
+                                )}
+                                {view === 'analyze-log' && loadedLogDetailsData && (
+                                    <button
+                                        className={`primary-btn healers-pane--action`}
+                                        onClick={() => {
+                                            let healers = getHealersInRoster(roster);
+                                            const existingHealerCds = getHealersInRoster(logDetailsData.raidCDs);
+
+                                            const copiedCDs: PlannedRaidCDs = existingHealerCds.map((player): PlannedPlayerRaidCDs => {
+                                                const casts = addRaidCDProperties(player.casts);
+                                                const copyTo = healers.findIndex(h => h.class === player.class && h.spec === player.spec);
+                                                const [target] = healers.splice(copyTo, 1);
+
+                                                return {
+                                                    ...player,
+                                                    playerId: target.playerId,
+                                                    casts,
+                                                }
+                                            });
+
+                                            setRosterCDs(copiedCDs);
+                                            setView('create-note');
+                                        }}
+                                    >
+                                        Edit Note
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                     {view === 'create-note' && rosterCDs && (
-                        <RTNotePreview
-                            boss={boss}
-                            roster={roster}
-                            rosterCDs={rosterCDs}
-                        />
+                        <div className='rt-note-wrapper'>
+                            <div className='info'>
+                                <ion-icon name="information-circle" />
+                                <span>
+                                    Phase timings must be entered manually.
+                                </span>
+                            </div>
+                            <RTNotePreview
+                                boss={boss}
+                                roster={roster}
+                                rosterCDs={rosterCDs}
+                            />
+                        </div>
                     )}
                 </div>
             </div>
@@ -179,14 +200,16 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
                             <WclLogRoster log={selectedLog!} />
                             <WclLogGuild log={selectedLog!} />
                             <span className='remove-btn'>
-                                <ion-icon name="close" />
+                                <ion-icon name="close" onClick={() => {
+                                    setSelectedLog(null);
+                                    setView("search-logs")
+                                }} />
                             </span>
                         </div>
                     </div>
                     <FightBreakdown
                         mode={'view'}
                         chartScale={chartScale}
-                        boss={boss}
                         roster={logRoster}
                         raidCDs={logRaidCDs}
                         timestamps={logDetailsData.timestamps}
@@ -199,12 +222,27 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
             {(loadedLogDetailsData && rosterCDs && view === 'create-note') && (
                 <div id="fight-breakdown-pane">
                     <div className='fight-breakdown-pane--title'>
-                        <h3>New Note</h3>
+                        <h3>
+                            New Note
+                            <span className='remove-btn'>
+                                <ion-icon
+                                    onClick={() => {
+                                        setView('analyze-log');
+                                    }}
+                                    name="close"
+                                />
+                            </span>
+                        </h3>
+                        <div className='info'>
+                            <ion-icon name="information-circle" />
+                            <span>
+                                Drag casts to move them around, shift-click to remove them.
+                            </span>
+                        </div>
                     </div>
                     <FightBreakdown
                         mode={'edit'}
                         chartScale={chartScale}
-                        boss={boss}
                         roster={roster}
                         raidCDs={rosterCDs}
                         timestamps={logDetailsData.timestamps}
@@ -218,7 +256,9 @@ export const CreatePlan = ({ boss, roster, setRoster }: { boss: Encounter, roste
     );
 };
 
-const BossDetails = ({ boss }: { boss: Encounter, }) => {
+const BossDetails = (props: { boss: Encounter, onClose: () => void; }) => {
+    const { boss, onClose } = props;
+
     useEffect(() => {
         refreshTooltips();
     }, [boss])
@@ -228,7 +268,7 @@ const BossDetails = ({ boss }: { boss: Encounter, }) => {
             <h3 className='boss-pane--title'>
                 {boss.name}
                 <span className='remove-btn'>
-                    <ion-icon name="close" />
+                    <ion-icon onClick={onClose} name="close" />
                 </span>
             </h3>
             <div className='boss-pane--body'>

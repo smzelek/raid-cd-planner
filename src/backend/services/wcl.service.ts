@@ -374,7 +374,7 @@ query BossAbilityDamageEvents {
         const events: BossAbilityDamageEvents = result!.map((d) => {
             return {
                 ability: d.ability.name,
-                damage: d.unmitigatedAmount || d.amount,
+                damage: d.amount,
                 timestamp: Math.round((d.timestamp - timestamps.startTime) / 1000),
                 tick: d.tick ?? false,
             }
